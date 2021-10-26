@@ -160,9 +160,13 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
     source: { history: $history },
     effect: async ({ history }) => {
       history.listen(() => recheck());
-      recheck();
       return true;
     },
+  });
+
+  sample({
+    clock: subscribeHistory.doneData,
+    target: recheck,
   });
 
   sample({
