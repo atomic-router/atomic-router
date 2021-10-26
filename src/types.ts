@@ -19,4 +19,5 @@ export type RouteInstance<Params extends RouteParams> = {
   open: Effect<Params, RouteParamsAndQuery<Params>>;
 };
 
+// @ts-expect-error
 export type PathCreator<Params extends RouteParams> = string;
