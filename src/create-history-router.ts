@@ -92,7 +92,7 @@ export const createHistoryRouter = (params: {
 
   const routesEntered = recheckFx.doneData.map(({ entered }) => entered);
   const routesLeft = recheckFx.doneData.map(({ left }) => left);
-  routesEntered.watch(console.log);
+
   for (const routeObj of params.routes) {
     // Watch for route.open.doneData to build new path and push
     sample({
