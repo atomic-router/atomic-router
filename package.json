@@ -42,5 +42,5 @@
   },
   "name": "atomic-router",
   "author": "Anton Kosykh",
-  "module": "dist/effector-routing.esm.js"
+  "module": "dist/atomic-router.esm.js"
 }
