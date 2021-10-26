@@ -1,8 +1,15 @@
 import { parse } from 'qs';
 import { buildPath, matchPath } from './build-path';
-import { createBrowserHistory, History } from 'history';
-import { attach, createEffect, guard, sample } from 'effector';
+import { History } from 'history';
 import { RouteInstance, RouteParams, RouteQuery } from './types';
+import {
+  attach,
+  createEffect,
+  guard,
+  sample,
+  createStore,
+  createEvent,
+} from 'effector';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -19,15 +26,15 @@ type HistoryPushParams = {
 
 const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
   pushParams => {
+    if (!pushParams.history) {
+      throw new Error('[Routing] No history provided');
+    }
     pushParams.history[pushParams.method](pushParams.path, {});
     return pushParams;
   }
 );
 
-export const createHistoryRouter = (params: {
-  history?: History;
-  routes: RouteObject<any>[];
-}) => {
+export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
   type EnterParams<Params extends RouteParams> = {
     route: RouteObject<Params>;
@@ -40,14 +47,21 @@ export const createHistoryRouter = (params: {
     query: RouteQuery;
   };
 
-  const actualHistory = params.history || createBrowserHistory();
+  const setHistory = createEvent<History>();
+
+  // @ts-expect-error
+  const $history = createStore<History>(null).on(
+    setHistory,
+    (_, nextHistory) => nextHistory
+  );
 
   // historyPushFx for the current history
   const pushFx = attach({
+    source: { history: $history },
     effect: historyPushFx,
-    mapParams: (params: PushParams) => {
+    mapParams: (params: PushParams, { history }) => {
       return {
-        history: actualHistory,
+        history,
         ...params,
       };
     },
@@ -124,19 +138,42 @@ export const createHistoryRouter = (params: {
     });
   }
 
-  const recheck = () => {
-    const [path, query] = [
-      actualHistory.location.pathname,
-      parse(actualHistory.location.search.slice(1)) as RouteQuery,
-    ];
-    recheckFx({ path, query });
-  };
+  // Takes current path from history and triggers recalculate
+  const recheck = attach({
+    source: { history: $history },
+    effect: async ({ history }) => {
+      const [path, query] = [
+        history.location.pathname,
+        parse(history.location.search.slice(1)) as RouteQuery,
+      ];
+      return { path, query };
+    },
+  });
 
-  actualHistory.listen(recheck);
+  sample({
+    source: recheck.doneData,
+    target: recheckFx,
+  });
 
-  recheck();
+  // Triggered whenever history is changed
+  const subscribeHistory = attach({
+    source: { history: $history },
+    effect: async ({ history }) => {
+      history.listen(() => recheck());
+      recheck();
+      return true;
+    },
+  });
+
+  sample({
+    clock: $history,
+    target: subscribeHistory,
+  });
 
   return {
+    $history,
+    setHistory,
+    push: pushFx,
     routes: params.routes,
   };
 };
