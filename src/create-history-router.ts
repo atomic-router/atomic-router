@@ -135,4 +135,8 @@ export const createHistoryRouter = (params: {
   actualHistory.listen(recheck);
 
   recheck();
+
+  return {
+    routes: params.routes,
+  };
 };
