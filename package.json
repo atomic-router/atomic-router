@@ -25,6 +25,10 @@
     "@types/qs": "^6.9.7",
     "tsdx": "^0.14.1"
   },
+  "dependencies": {
+    "path-to-regexp": "^6.2.0",
+    "qs": "^6.10.1"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -38,9 +42,5 @@
   },
   "name": "effector-routing",
   "author": "Anton Kosykh",
-  "module": "dist/effector-routing.esm.js",
-  "dependencies": {
-    "path-to-regexp": "^6.2.0",
-    "qs": "^6.10.1"
-  }
+  "module": "dist/effector-routing.esm.js"
 }
