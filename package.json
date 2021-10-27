@@ -18,12 +18,14 @@
     "prepare": "tsdx build"
   },
   "peerDependencies": {
-    "effector": "^22.1.2",
-    "history": "^5.0.1"
+    "effector": "^22",
+    "history": "^5"
   },
   "devDependencies": {
     "@types/qs": "^6.9.7",
-    "tsdx": "^0.14.1"
+    "tsdx": "^0.14.1",
+    "effector": "^22",
+    "history": "^5"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0",
