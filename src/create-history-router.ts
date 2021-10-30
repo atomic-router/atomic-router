@@ -9,6 +9,7 @@ import {
   sample,
   createStore,
   createEvent,
+  scopeBind,
 } from 'effector';
 
 type RouteObject<Params extends RouteParams> = {
@@ -159,7 +160,8 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   const subscribeHistory = attach({
     source: { history: $history },
     effect: async ({ history }) => {
-      history.listen(() => recheck());
+      const scopedRecheck = scopeBind(recheck);
+      history.listen(() => scopedRecheck());
       return true;
     },
   });
