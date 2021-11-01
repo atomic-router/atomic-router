@@ -56,6 +56,7 @@ export const createRoute = <Params extends RouteParams>() => {
     $params,
     $query,
     opened,
+    updated,
     left,
     navigate: navigateFx,
     open: openFx,
