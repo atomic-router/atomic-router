@@ -127,6 +127,7 @@ route.$query     // Store<{ [key]: string }>
 
 // Events (only watch 'em)
 route.opened     // Event<{ params: RouteParams, query: RouteQuery }>
+route.updated    // Event<{ params: RouteParams, query: RouteQuery }>
 route.left       // Event<{ params: RouteParams, query: RouteQuery }>
 
 // Effects
