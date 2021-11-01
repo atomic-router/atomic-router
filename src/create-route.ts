@@ -33,13 +33,18 @@ export const createRoute = <Params extends RouteParams>() => {
   const $query = createStore<RouteQuery>({});
 
   const opened = createEvent<RouteParamsAndQuery<Params>>();
+  const updated = createEvent<RouteParamsAndQuery<Params>>();
   const left = createEvent<void>();
 
   $isOpened.on(opened, () => true).on(left, () => false);
 
-  $params.on(opened, (_, { params }) => params);
+  $params
+    .on(opened, (_, { params }) => params)
+    .on(updated, (_, { params }) => params);
 
-  $query.on(opened, (_, { query }) => query);
+  $query
+    .on(opened, (_, { query }) => query)
+    .on(updated, (_, { query }) => query);
 
   sample({
     clock: navigateFx.doneData,

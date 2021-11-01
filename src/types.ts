@@ -14,6 +14,7 @@ export type RouteInstance<Params extends RouteParams> = {
   $params: Store<Params>;
   $query: Store<RouteQuery>;
   opened: Event<RouteParamsAndQuery<Params>>;
+  updated: Event<RouteParamsAndQuery<Params>>;
   left: Event<void>;
   navigate: Effect<RouteParamsAndQuery<Params>, RouteParamsAndQuery<Params>>;
   open: Effect<Params, RouteParamsAndQuery<Params>>;

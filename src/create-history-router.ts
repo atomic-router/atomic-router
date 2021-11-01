@@ -127,6 +127,17 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
       target: routeObj.route.opened,
     });
 
+    // Trigger .updated() for already opened routes marked as "opened"
+    guard({
+      clock: routesEntered.filterMap(recheckResults => {
+        return recheckResults.find(
+          recheckResult => recheckResult.route === routeObj
+        );
+      }),
+      filter: routeObj.route.$isOpened.map(isOpened => isOpened),
+      target: routeObj.route.updated,
+    });
+
     // Trigger .left() for the routes marked as "left"
     guard({
       clock: routesLeft.filterMap(recheckResults => {
@@ -140,6 +151,7 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   }
 
   // Takes current path from history and triggers recalculate
+  // Triggered on every history change + once when history instance is set
   const recheck = attach({
     source: { history: $history },
     effect: async ({ history }) => {
@@ -156,7 +168,7 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
     target: recheckFx,
   });
 
-  // Triggered whenever history is changed
+  // Triggered whenever history instance is set
   const subscribeHistory = attach({
     source: { history: $history },
     effect: async ({ history }) => {
