@@ -172,8 +172,14 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   const subscribeHistory = attach({
     source: { history: $history },
     effect: async ({ history }) => {
-      const scopedRecheck = scopeBind(recheck);
-      history.listen(() => scopedRecheck());
+      let scopedRecheck = recheck;
+      try {
+        // @ts-expect-error
+        scopedRecheck = scopeBind(recheck);
+      } catch (err) {}
+      history.listen(() => {
+        scopedRecheck();
+      });
       return true;
     },
   });
