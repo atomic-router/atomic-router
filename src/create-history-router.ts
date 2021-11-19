@@ -116,17 +116,6 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
       target: enteredFx,
     });
 
-    // Trigger .opened() for the routes marked as "opened"
-    guard({
-      clock: routesEntered.filterMap(recheckResults => {
-        return recheckResults.find(
-          recheckResult => recheckResult.route === routeObj
-        );
-      }),
-      filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
-      target: routeObj.route.opened,
-    });
-
     // Trigger .updated() for already opened routes marked as "opened"
     guard({
       clock: routesEntered.filterMap(recheckResults => {
@@ -136,6 +125,17 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
       }),
       filter: routeObj.route.$isOpened.map(isOpened => isOpened),
       target: routeObj.route.updated,
+    });
+
+    // Trigger .opened() for the routes marked as "opened"
+    guard({
+      clock: routesEntered.filterMap(recheckResults => {
+        return recheckResults.find(
+          recheckResult => recheckResult.route === routeObj
+        );
+      }),
+      filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
+      target: routeObj.route.opened,
     });
 
     // Trigger .left() for the routes marked as "left"
