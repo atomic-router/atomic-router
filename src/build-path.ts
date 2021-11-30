@@ -1,17 +1,17 @@
 import { match, compile } from 'path-to-regexp';
 
-import { RouteParams, PathCreator, RouteQuery } from './types';
+import { PathParams, RouteParams, RouteQuery } from './types';
 
-type BuildPathParams<Params extends RouteParams> = {
-  pathCreator: PathCreator<Params>;
-  params: Params;
+type BuildPathParams<Path extends string> = {
+  pathCreator: Path;
+  params: PathParams<Path>;
   query: RouteQuery;
 };
-export function buildPath<Params extends RouteParams>({
+export function buildPath<Path extends string>({
   pathCreator,
   params,
   query,
-}: BuildPathParams<Params>) {
+}: BuildPathParams<Path>) {
   const pathname = compile(pathCreator)(params);
   const qs = Object.keys(query).length
     ? `?${new URLSearchParams(query as Record<string, string>)}`
@@ -20,17 +20,18 @@ export function buildPath<Params extends RouteParams>({
   return url;
 }
 
-type MatchPathParams<Params extends RouteParams> = {
-  pathCreator: PathCreator<Params>;
-  actualPath: string;
+type MatchPathParams<Path extends string> = {
+  pathCreator: Path;
+  actualPath: Path;
 };
-export function matchPath<Params extends RouteParams>({
+export function matchPath<Path extends string>({
   pathCreator,
   actualPath,
-}: MatchPathParams<Params>) {
+}: MatchPathParams<Path>) {
   const matches = match(pathCreator)(actualPath);
   if (matches) {
-    return { matches: true, params: matches.params } as const;
+    const params = matches.params as RouteParams;
+    return { matches: true, params: params } as const;
   }
-  return { matches: false } as const;
+  return { matches: false, params: {} as RouteParams } as const;
 }

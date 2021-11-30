@@ -1,7 +1,4 @@
 import { parse } from 'qs';
-import { buildPath, matchPath } from './build-path';
-import { History } from 'history';
-import { RouteInstance, RouteParams, RouteQuery } from './types';
 import {
   attach,
   createEffect,
@@ -11,43 +8,49 @@ import {
   createEvent,
   scopeBind,
 } from 'effector';
+import { History } from 'history';
 
-type RouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
-  path: string;
+import { RouteInstance, RouteQuery, PathParams } from './types';
+
+import { buildPath, matchPath } from './build-path';
+
+type RouteObject<Path extends string> = {
+  path: Path;
+  route: RouteInstance<PathParams<Path>>;
 };
 
-type HistoryPushParams = {
-  history: History;
-  path: string;
-  params: RouteParams;
+type HistoryPushParams<Path extends string> = {
+  path: Path;
+  params: PathParams<Path>;
   query: RouteQuery;
   method: 'replace' | 'push';
 };
 
-const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
-  pushParams => {
-    if (!pushParams.history) {
-      throw new Error('[Routing] No history provided');
-    }
-    pushParams.history[pushParams.method](pushParams.path, {});
-    return pushParams;
+type HistoryPushPayload<Path extends string> = HistoryPushParams<Path> & {
+  history: History;
+};
+
+type EnterParams<Path extends string, Params = PathParams<Path>> = {
+  route: RouteObject<Path>;
+  params: Params;
+  query: RouteQuery;
+};
+
+type RecheckResult<Path extends string, Params = PathParams<Path>> = {
+  route: RouteObject<Path>;
+  params: Params;
+  query: RouteQuery;
+};
+
+const historyPushFx = createEffect((pushParams: HistoryPushPayload<any>) => {
+  if (!pushParams.history) {
+    throw new Error('[Routing] No history provided');
   }
-);
+  pushParams.history[pushParams.method](pushParams.path, {});
+  return pushParams;
+});
 
 export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
-  type PushParams = Omit<HistoryPushParams, 'history'>;
-  type EnterParams<Params extends RouteParams> = {
-    route: RouteObject<Params>;
-    params: Params;
-    query: RouteQuery;
-  };
-  type RecheckResult<Params extends RouteParams> = {
-    route: RouteObject<Params>;
-    params: Params;
-    query: RouteQuery;
-  };
-
   const setHistory = createEvent<History>();
 
   // @ts-expect-error
@@ -58,9 +61,9 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
 
   // historyPushFx for the current history
   const pushFx = attach({
-    source: { history: $history },
     effect: historyPushFx,
-    mapParams: (params: PushParams, { history }) => {
+    source: { history: $history },
+    mapParams: (params: HistoryPushParams<any>, { history }) => {
       return {
         history,
         ...params,
@@ -69,31 +72,32 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   });
 
   // Triggered whenever some route.open.doneData is triggered
-  const enteredFx = createEffect<EnterParams<any>, PushParams>(
-    ({ route, params, query }) => {
+  const enteredFx = createEffect(
+    ({ route, params, query }: EnterParams<any>) => {
       const path = buildPath({ pathCreator: route.path, params, query });
-      return { path, params, query, method: 'push' };
+      return { path, params, query, method: 'push' } as HistoryPushParams<
+        typeof path
+      >;
     }
   );
 
   // Recalculate entered/left routes
-  const recheckFx = createEffect<
-    { path: string; query: RouteQuery },
-    { entered: RecheckResult<any>[]; left: RecheckResult<any>[] }
-  >(({ path, query }) => {
-    const entered = [] as RecheckResult<any>[];
-    const left = [] as RecheckResult<any>[];
+  const recheckFx = createEffect(
+    ({ path, query }: { path: string; query: RouteQuery }) => {
+      const entered = [] as RecheckResult<any>[];
+      const left = [] as RecheckResult<any>[];
 
-    for (const route of params.routes) {
-      const { matches, params } = matchPath({
-        pathCreator: route.path,
-        actualPath: path,
-      });
-      (matches ? entered : left).push({ route, params, query });
+      for (const route of params.routes) {
+        const { matches, params } = matchPath({
+          pathCreator: route.path,
+          actualPath: path,
+        });
+        (matches ? entered : left).push({ route, params, query });
+      }
+
+      return { entered, left };
     }
-
-    return { entered, left };
-  });
+  );
 
   sample({
     clock: enteredFx.doneData,

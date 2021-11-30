@@ -13,12 +13,14 @@ import {
 } from './types';
 
 export const createRoute = <Params extends RouteParams>() => {
-  const navigateFx = createEffect<
-    RouteParamsAndQuery<Params>,
-    RouteParamsAndQuery<Params>
-  >(async ({ params, query }) => {
-    return { params: params || {}, query: query || {} };
-  });
+  const navigateFx = createEffect(
+    async ({ params, query }: RouteParamsAndQuery<Params>) => {
+      return {
+        params: params || {},
+        query: query || {},
+      } as RouteParamsAndQuery<Params>;
+    }
+  );
 
   const openFx = attach({
     effect: navigateFx,
