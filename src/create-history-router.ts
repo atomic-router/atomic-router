@@ -50,7 +50,10 @@ const historyPushFx = createEffect((pushParams: HistoryPushPayload<any>) => {
   return pushParams;
 });
 
-export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
+export const createHistoryRouter = (params: {
+  routes: RouteObject<any>[];
+  hydrate?: boolean;
+}) => {
   const setHistory = createEvent<History>();
 
   // @ts-expect-error
@@ -188,10 +191,14 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
     },
   });
 
-  sample({
-    clock: subscribeHistory.doneData,
-    target: recheck,
-  });
+  // If `hydrate` flag is set,
+  // don't trigger recheck on history init
+  if (!params.hydrate) {
+    sample({
+      clock: subscribeHistory.doneData,
+      target: recheck,
+    });
+  }
 
   sample({
     clock: $history,
