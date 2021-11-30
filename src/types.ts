@@ -22,3 +22,14 @@ export type RouteInstance<Params extends RouteParams> = {
 
 // @ts-expect-error
 export type PathCreator<Params extends RouteParams> = string;
+
+// https://dev.to/0916dhkim/type-safe-usage-of-react-router-5c44
+type ExtractRouteParams<T> = string extends T
+  ? Record<string, string>
+  : T extends `${infer _Start}:${infer Param}/${infer Rest}`
+  ? { [k in Param | keyof ExtractRouteParams<Rest>]: string }
+  : T extends `${infer _Start}:${infer Param}`
+  ? { [k in Param]: string }
+  : RouteParams;
+
+export type PathParams<P extends string> = ExtractRouteParams<P>;
