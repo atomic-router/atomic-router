@@ -23,9 +23,9 @@
   },
   "devDependencies": {
     "@types/qs": "^6.9.7",
-    "tsdx": "^0.14.1",
     "effector": "^22",
-    "history": "^5"
+    "history": "^5",
+    "tsdx": "^0.14.1"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0",
