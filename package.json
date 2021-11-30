@@ -44,5 +44,9 @@
   },
   "name": "atomic-router",
   "author": "Anton Kosykh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelin2025/atomic-router"
+  },
   "module": "dist/atomic-router.esm.js"
 }
