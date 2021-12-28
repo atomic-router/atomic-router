@@ -71,6 +71,7 @@ export const createHistoryRouter = (params: {
   const remappedRoutes = remapRouteObjects(params.routes);
 
   const setHistory = createEvent<History>();
+  const routeNotFound = createEvent();
 
   const $query = createStore({});
   const $path = createStore('');
@@ -161,6 +162,12 @@ export const createHistoryRouter = (params: {
   sample({
     clock: pushFx.doneData,
     target: recalculateFx,
+  });
+
+  guard({
+    clock: recalculateFx.doneData,
+    filter: ({ entered }) => entered.length === 0,
+    target: routeNotFound,
   });
 
   const routesEntered = recalculateFx.doneData.map(({ entered }) => entered);
@@ -278,5 +285,6 @@ export const createHistoryRouter = (params: {
     setHistory,
     push: pushFx,
     routes: remappedRoutes,
+    routeNotFound,
   };
 };
