@@ -164,6 +164,7 @@ export const createHistoryRouter = (params: {
     target: recalculateFx,
   });
 
+  // Trigger 404 if no routes were entered
   guard({
     clock: recalculateFx.doneData,
     filter: ({ entered }) => entered.length === 0,
