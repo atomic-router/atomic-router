@@ -1,4 +1,3 @@
-import { parse } from 'qs';
 import { buildPath, matchPath } from './build-path';
 import { History } from 'history';
 import { RouteInstance, RouteParams, RouteQuery } from './types';
@@ -35,7 +34,10 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
   }
 );
 
-export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
+export const createHistoryRouter = (params: {
+  routes: RouteObject<any>[];
+  hydrate?: boolean;
+}) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
   type EnterParams<Params extends RouteParams> = {
     route: RouteObject<Params>;
@@ -58,7 +60,9 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
 
   // historyPushFx for the current history
   const pushFx = attach({
-    source: { history: $history },
+    source: {
+      history: $history,
+    },
     effect: historyPushFx,
     mapParams: (params: PushParams, { history }) => {
       return {
@@ -71,15 +75,30 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   // Triggered whenever some route.open.doneData is triggered
   const enteredFx = createEffect<EnterParams<any>, PushParams>(
     ({ route, params, query }) => {
-      const path = buildPath({ pathCreator: route.path, params, query });
-      return { path, params, query, method: 'push' };
+      const path = buildPath({
+        pathCreator: route.path,
+        params,
+        query,
+      });
+      return {
+        path,
+        params,
+        query,
+        method: 'push',
+      };
     }
   );
 
   // Recalculate entered/left routes
   const recheckFx = createEffect<
-    { path: string; query: RouteQuery },
-    { entered: RecheckResult<any>[]; left: RecheckResult<any>[] }
+    {
+      path: string;
+      query: RouteQuery;
+    },
+    {
+      entered: RecheckResult<any>[];
+      left: RecheckResult<any>[];
+    }
   >(({ path, query }) => {
     const entered = [] as RecheckResult<any>[];
     const left = [] as RecheckResult<any>[];
@@ -89,10 +108,17 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
         pathCreator: route.path,
         actualPath: path,
       });
-      (matches ? entered : left).push({ route, params, query });
+      (matches ? entered : left).push({
+        route,
+        params,
+        query,
+      });
     }
 
-    return { entered, left };
+    return {
+      entered,
+      left,
+    };
   });
 
   sample({
@@ -112,7 +138,11 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
     // Watch for route.open.doneData to build new path and push
     sample({
       clock: routeObj.route.navigate.doneData,
-      fn: ({ params, query }) => ({ route: routeObj, params, query }),
+      fn: ({ params, query }) => ({
+        route: routeObj,
+        params,
+        query,
+      }),
       target: enteredFx,
     });
 
@@ -153,13 +183,21 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   // Takes current path from history and triggers recalculate
   // Triggered on every history change + once when history instance is set
   const recheck = attach({
-    source: { history: $history },
+    source: {
+      history: $history,
+    },
     effect: async ({ history }) => {
       const [path, query] = [
         history.location.pathname,
-        parse(history.location.search.slice(1)) as RouteQuery,
+        Object.fromEntries(
+          // @ts-expect-error
+          new URLSearchParams(history.location.search)
+        ) as RouteQuery,
       ];
-      return { path, query };
+      return {
+        path,
+        query,
+      };
     },
   });
 
@@ -170,7 +208,9 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
 
   // Triggered whenever history instance is set
   const subscribeHistory = attach({
-    source: { history: $history },
+    source: {
+      history: $history,
+    },
     effect: async ({ history }) => {
       let scopedRecheck = recheck;
       try {
@@ -184,10 +224,14 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
     },
   });
 
-  sample({
-    clock: subscribeHistory.doneData,
-    target: recheck,
-  });
+  // If `hydrate` flag is set,
+  // don't trigger recheck on history init
+  if (!params.hydrate) {
+    sample({
+      clock: subscribeHistory.doneData,
+      target: recheck,
+    });
+  }
 
   sample({
     clock: $history,

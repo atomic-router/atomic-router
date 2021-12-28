@@ -22,14 +22,12 @@
     "history": "^5"
   },
   "devDependencies": {
-    "@types/qs": "^6.9.7",
     "tsdx": "^0.14.1",
     "effector": "^22",
     "history": "^5"
   },
   "dependencies": {
-    "path-to-regexp": "^6.2.0",
-    "qs": "^6.10.1"
+    "path-to-regexp": "^6.2.0"
   },
   "husky": {
     "hooks": {
