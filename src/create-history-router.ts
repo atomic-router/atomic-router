@@ -16,6 +16,11 @@ type RouteObject<Params extends RouteParams> = {
   path: string;
 };
 
+type UnmappedRouteObject<Params extends RouteParams> = {
+  route: RouteInstance<Params> | RouteInstance<Params>[];
+  path: string;
+};
+
 type HistoryPushParams = {
   history: History;
   path: string;
@@ -34,8 +39,21 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
   }
 );
 
+const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
+  const next = [] as RouteObject<any>[];
+  for (const routeObj of objects) {
+    if (Array.isArray(routeObj.route)) {
+      next.push(...routeObj.route.map(route => ({ ...routeObj, route })));
+    } else {
+      // @ts-expect-error
+      next.push(routeObj);
+    }
+  }
+  return next;
+};
+
 export const createHistoryRouter = (params: {
-  routes: RouteObject<any>[];
+  routes: UnmappedRouteObject<any>[];
   hydrate?: boolean;
 }) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
@@ -50,7 +68,13 @@ export const createHistoryRouter = (params: {
     query: RouteQuery;
   };
 
+  const remappedRoutes = remapRouteObjects(params.routes);
+
   const setHistory = createEvent<History>();
+
+  const $query = createStore({});
+  const $path = createStore('');
+  const $activeRoutes = createStore<RouteInstance<any>[]>([]);
 
   // @ts-expect-error
   const $history = createStore<History>(null).on(
@@ -90,7 +114,7 @@ export const createHistoryRouter = (params: {
   );
 
   // Recalculate entered/left routes
-  const recheckFx = createEffect<
+  const recalculateFx = createEffect<
     {
       path: string;
       query: RouteQuery;
@@ -103,7 +127,7 @@ export const createHistoryRouter = (params: {
     const entered = [] as RecheckResult<any>[];
     const left = [] as RecheckResult<any>[];
 
-    for (const route of params.routes) {
+    for (const route of remappedRoutes) {
       const { matches, params } = matchPath({
         pathCreator: route.path,
         actualPath: path,
@@ -121,6 +145,14 @@ export const createHistoryRouter = (params: {
     };
   });
 
+  $path.on(recalculateFx.done, (_prev, { params: { path } }) => path);
+
+  $query.on(recalculateFx.done, (_prev, { params: { query } }) => query);
+
+  $activeRoutes.on(recalculateFx.doneData, (_prev, { entered }) =>
+    entered.map(recheckResult => recheckResult.route.route)
+  );
+
   sample({
     clock: enteredFx.doneData,
     target: pushFx,
@@ -128,13 +160,13 @@ export const createHistoryRouter = (params: {
 
   sample({
     clock: pushFx.doneData,
-    target: recheckFx,
+    target: recalculateFx,
   });
 
-  const routesEntered = recheckFx.doneData.map(({ entered }) => entered);
-  const routesLeft = recheckFx.doneData.map(({ left }) => left);
+  const routesEntered = recalculateFx.doneData.map(({ entered }) => entered);
+  const routesLeft = recalculateFx.doneData.map(({ left }) => left);
 
-  for (const routeObj of params.routes) {
+  for (const routeObj of remappedRoutes) {
     // Watch for route.open.doneData to build new path and push
     sample({
       clock: routeObj.route.navigate.doneData,
@@ -182,7 +214,7 @@ export const createHistoryRouter = (params: {
 
   // Takes current path from history and triggers recalculate
   // Triggered on every history change + once when history instance is set
-  const recheck = attach({
+  const recheckFx = attach({
     source: {
       history: $history,
     },
@@ -202,20 +234,20 @@ export const createHistoryRouter = (params: {
   });
 
   sample({
-    source: recheck.doneData,
-    target: recheckFx,
+    source: recheckFx.doneData,
+    target: recalculateFx,
   });
 
   // Triggered whenever history instance is set
-  const subscribeHistory = attach({
+  const subscribeHistoryFx = attach({
     source: {
       history: $history,
     },
     effect: async ({ history }) => {
-      let scopedRecheck = recheck;
+      let scopedRecheck = recheckFx;
       try {
         // @ts-expect-error
-        scopedRecheck = scopeBind(recheck);
+        scopedRecheck = scopeBind(recheckFx);
       } catch (err) {}
       history.listen(() => {
         scopedRecheck();
@@ -228,20 +260,23 @@ export const createHistoryRouter = (params: {
   // don't trigger recheck on history init
   if (!params.hydrate) {
     sample({
-      clock: subscribeHistory.doneData,
-      target: recheck,
+      clock: subscribeHistoryFx.doneData,
+      target: recheckFx,
     });
   }
 
   sample({
     clock: $history,
-    target: subscribeHistory,
+    target: subscribeHistoryFx,
   });
 
   return {
+    $path,
+    $query,
+    $activeRoutes,
     $history,
     setHistory,
     push: pushFx,
-    routes: params.routes,
+    routes: remappedRoutes,
   };
 };

@@ -22,9 +22,10 @@
     "history": "^5"
   },
   "devDependencies": {
-    "tsdx": "^0.14.1",
     "effector": "^22",
-    "history": "^5"
+    "history": "^5",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.3.1"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0"
