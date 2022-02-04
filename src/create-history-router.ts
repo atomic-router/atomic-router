@@ -78,10 +78,9 @@ export const createHistoryRouter = (params: {
   const $activeRoutes = createStore<RouteInstance<any>[]>([]);
 
   // @ts-expect-error
-  const $history = createStore<History>(null).on(
-    setHistory,
-    (_, nextHistory) => nextHistory
-  );
+  const $history = createStore<History>(null, {
+    serialize: 'ignore',
+  }).on(setHistory, (_, nextHistory) => nextHistory);
 
   // historyPushFx for the current history
   const pushFx = attach({
