@@ -2,6 +2,8 @@ import { match, compile } from 'path-to-regexp';
 
 import { RouteParams, PathCreator, RouteQuery } from './types';
 
+const getPathname = (path: string) => new URL(`http://_${path}`).pathname;
+
 type BuildPathParams<Params extends RouteParams> = {
   pathCreator: PathCreator<Params>;
   params: Params;
@@ -28,7 +30,7 @@ export function matchPath<Params extends RouteParams>({
   pathCreator,
   actualPath,
 }: MatchPathParams<Params>) {
-  const matches = match(pathCreator)(actualPath);
+  const matches = match(pathCreator)(getPathname(actualPath));
   if (matches) {
     return { matches: true, params: matches.params } as const;
   }
