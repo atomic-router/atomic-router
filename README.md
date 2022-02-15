@@ -18,14 +18,18 @@ $ npm install effector atomic-router
 Create your routes wherever you want:
 ```ts
 // pages/home
+import { createRoute } from 'atomic-router'
 export const homeRoute = createRoute()
 
 // pages/posts
+import { createRoute } from 'atomic-router'
 export const postsRoute = createRoute<{ postId: string }>()
 ```
 And then create a router
 ```ts
 // app/routing
+import { createHistoryRouter } from 'atomic-router'
+import { createBrowserHistory, createMemoryHistory } from 'history'
 import { homeRoute } from '@/pages/home'
 import { postsRoute } from '@/pages/home'
 
@@ -65,6 +69,7 @@ There are 3 purposes for using atomic routes:
   2. And just trigger it when `postPage.$params` change:
   ```tsx
   //route.ts
+  import { createRoute } from 'atomic-router'
   import { getPostFx } from './model'
 
   const postPage = createRoute<{ postId: string }>()
@@ -103,7 +108,7 @@ There are 3 purposes for using atomic routes:
 
   With `atomic-router`, you can create a "personal" route for this card:
   ```tsx
-  const readMoreRoute = createRoute<{{ postId: id }}>()
+  const readMoreRoute = createRoute<{ postId: id }>()
   ```
   
   And then you can just give it the same path as your `PostsPage` has:
@@ -120,6 +125,9 @@ There are 3 purposes for using atomic routes:
 
 ## API Reference
 ```tsx
+// Params is an object-type describing query params for your route
+const route = createRoute<Params>()
+  
 // Stores
 route.$isOpened  // Store<boolean>
 route.$params    // Store<{ [key]: string }>
@@ -133,4 +141,6 @@ route.left       // Event<{ params: RouteParams, query: RouteQuery }>
 // Effects
 route.open       // Effect<RouteParams>
 route.navigate   // Effect<{ params: RouteParams, query: RouteQuery }>
+  
+// Note: Store, Event and Effect is imported from 'effector' package
 ```
