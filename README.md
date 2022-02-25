@@ -14,6 +14,9 @@ Simple routing implementation that provides abstraction layer instead of inline 
 $ npm install effector atomic-router
 ```
 
+## View-library bindings
+- [React](https://github.com/kelin2025/atomic-router-react)
+
 ## Initialization
 Create your routes wherever you want:
 ```ts
