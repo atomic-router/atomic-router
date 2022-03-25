@@ -238,11 +238,7 @@ export const createHistoryRouter = (params: {
     });
 
     // Reset $isOpenedManually
-    sample({
-      clock: routesOpened,
-      fn: () => false,
-      target: $isOpenedManually,
-    });
+    $isOpenedManually.reset(sample({ clock: routesOpened }));
   }
 
   // Takes current path from history and triggers recalculate
