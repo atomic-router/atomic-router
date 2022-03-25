@@ -3,8 +3,6 @@ import {
   createEffect,
   createEvent,
   createStore,
-  guard,
-  sample,
   split,
 } from 'effector';
 import {
