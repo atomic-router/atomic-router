@@ -1,6 +1,7 @@
 import {
   is,
   guard,
+  merge,
   sample,
   combine,
   createStore,
