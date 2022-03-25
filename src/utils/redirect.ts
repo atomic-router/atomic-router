@@ -1,5 +1,5 @@
 import { Clock, createStore, is, sample, Store } from 'effector';
-import { RouteInstance, RouteQuery } from './types';
+import { RouteInstance, RouteQuery } from '../types';
 
 type RedirectParams<T, Params> = {
   clock: Clock<T>;

@@ -1,6 +1,6 @@
 import { match, compile } from 'path-to-regexp';
 
-import { RouteParams, PathCreator, RouteQuery } from './types';
+import { RouteParams, PathCreator, RouteQuery } from '../types';
 
 const getPathname = (path: string) => new URL(`http://_${path}`).pathname;
 

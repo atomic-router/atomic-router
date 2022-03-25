@@ -20,7 +20,12 @@ export type RouteInstance<Params extends RouteParams> = {
   left: Event<void>;
   navigate: Effect<RouteParamsAndQuery<Params>, RouteParamsAndQuery<Params>>;
   open: Effect<Params, RouteParamsAndQuery<Params>>;
+  kind: typeof Kind.ROUTE;
 };
 
 // @ts-expect-error
 export type PathCreator<Params extends RouteParams> = string;
+
+export const Kind = {
+  ROUTE: Symbol(),
+};

@@ -1,4 +1,4 @@
-import { buildPath, matchPath } from './build-path';
+import { buildPath, matchPath } from './utils/build-path';
 import { History } from 'history';
 import { RouteInstance, RouteParams, RouteQuery } from './types';
 import {

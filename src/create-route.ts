@@ -11,6 +11,7 @@ import {
   RouteParamsAndQuery,
   RouteQuery,
   RouteInstance,
+  Kind,
 } from './types';
 
 export const createRoute = <Params extends RouteParams>() => {
@@ -75,6 +76,7 @@ export const createRoute = <Params extends RouteParams>() => {
     left,
     navigate: navigateFx,
     open: openFx,
+    kind: Kind.ROUTE,
   };
 
   return instance;
