@@ -32,7 +32,7 @@ export const createRoute = <Params extends RouteParams>() => {
   });
 
   const $isOpened = createStore<boolean>(false);
-  const $params = createStore<RouteParams>({});
+  const $params = createStore<Params>({} as Params);
   const $query = createStore<RouteQuery>({});
 
   const opened = createEvent<RouteParamsAndQuery<Params>>();
@@ -65,14 +65,17 @@ export const createRoute = <Params extends RouteParams>() => {
     target: left,
   });
 
-  return {
+  const instance: RouteInstance<Params> = {
     $isOpened,
     $params,
     $query,
     opened,
     updated,
+    closed,
     left,
     navigate: navigateFx,
     open: openFx,
-  } as RouteInstance<Params>;
+  };
+
+  return instance;
 };
