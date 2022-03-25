@@ -3,7 +3,9 @@ import {
   createEffect,
   createEvent,
   createStore,
+  guard,
   sample,
+  split,
 } from 'effector';
 import {
   RouteParams,
@@ -13,12 +15,14 @@ import {
 } from './types';
 
 export const createRoute = <Params extends RouteParams>() => {
-  const navigateFx = createEffect<
-    RouteParamsAndQuery<Params>,
-    RouteParamsAndQuery<Params>
-  >(async ({ params, query }) => {
-    return { params: params || {}, query: query || {} };
-  });
+  const navigateFx = createEffect(
+    async ({ params, query }: RouteParamsAndQuery<Params>) => {
+      return {
+        params: params || {},
+        query: query || {},
+      } as RouteParamsAndQuery<Params>;
+    }
+  );
 
   const openFx = attach({
     effect: navigateFx,
@@ -46,9 +50,13 @@ export const createRoute = <Params extends RouteParams>() => {
     .on(opened, (_, { query }) => query)
     .on(updated, (_, { query }) => query);
 
-  sample({
-    clock: navigateFx.doneData,
-    target: opened,
+  split({
+    source: navigateFx.doneData,
+    match: $isOpened.map(isOpened => (isOpened ? 'updated' : 'opened')),
+    cases: {
+      opened,
+      updated,
+    },
   });
 
   return {

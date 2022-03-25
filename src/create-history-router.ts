@@ -75,12 +75,16 @@ export const createHistoryRouter = (params: {
 
   const $query = createStore({});
   const $path = createStore('');
-  const $activeRoutes = createStore<RouteInstance<any>[]>([]);
+  const $activeRoutes = createStore<RouteInstance<any>[]>([], {
+    serialize: 'ignore',
+  });
 
   // @ts-expect-error
   const $history = createStore<History>(null, {
     serialize: 'ignore',
-  }).on(setHistory, (_, nextHistory) => nextHistory);
+  });
+
+  $history.on(setHistory, (_, nextHistory) => nextHistory);
 
   // historyPushFx for the current history
   const pushFx = attach({
@@ -158,10 +162,10 @@ export const createHistoryRouter = (params: {
     target: pushFx,
   });
 
-  sample({
-    clock: pushFx.doneData,
-    target: recalculateFx,
-  });
+  // sample({
+  //   clock: pushFx.doneData,
+  //   target: recalculateFx,
+  // });
 
   // Trigger 404 if no routes were entered
   guard({
@@ -174,10 +178,14 @@ export const createHistoryRouter = (params: {
   const routesLeft = recalculateFx.doneData.map(({ left }) => left);
 
   for (const routeObj of remappedRoutes) {
-    // Watch for route.open.doneData to build new path and push
+    const $isOpenedManually = createStore(false);
+
+    // Watch for route.navigate.doneData to build new path and push
+    const navigatedManually = routeObj.route.navigate.done;
+
     sample({
-      clock: routeObj.route.navigate.doneData,
-      fn: ({ params, query }) => ({
+      clock: navigatedManually,
+      fn: ({ result: { params, query } }) => ({
         route: routeObj,
         params,
         query,
@@ -185,37 +193,55 @@ export const createHistoryRouter = (params: {
       target: enteredFx,
     });
 
+    const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
+      return recheckResults.find(
+        recheckResult => recheckResult.route === routeObj
+      );
+    };
+
+    const recheckLifecycle = {
+      opened: guard({
+        clock: routesEntered.filterMap(containsCurrentRoute),
+        filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
+      }),
+      updated: guard({
+        clock: routesEntered.filterMap(containsCurrentRoute),
+        filter: routeObj.route.$isOpened,
+      }),
+      left: guard({
+        clock: routesLeft.filterMap(containsCurrentRoute),
+        filter: routeObj.route.$isOpened,
+      }),
+    };
+
+    // This is needed to skip extra opened/udpated calls from the route itself
+    $isOpenedManually.on(navigatedManually, () => true);
+
     // Trigger .updated() for already opened routes marked as "opened"
     guard({
-      clock: routesEntered.filterMap(recheckResults => {
-        return recheckResults.find(
-          recheckResult => recheckResult.route === routeObj
-        );
-      }),
-      filter: routeObj.route.$isOpened.map(isOpened => isOpened),
+      clock: recheckLifecycle.updated,
+      filter: $isOpenedManually.map(isOpenedManually => !isOpenedManually),
       target: routeObj.route.updated,
     });
 
     // Trigger .opened() for the routes marked as "opened"
     guard({
-      clock: routesEntered.filterMap(recheckResults => {
-        return recheckResults.find(
-          recheckResult => recheckResult.route === routeObj
-        );
-      }),
-      filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
+      clock: recheckLifecycle.opened,
+      filter: $isOpenedManually.map(isOpenedManually => !isOpenedManually),
       target: routeObj.route.opened,
     });
 
     // Trigger .left() for the routes marked as "left"
-    guard({
-      clock: routesLeft.filterMap(recheckResults => {
-        return recheckResults.find(
-          recheckResult => recheckResult.route === routeObj
-        );
-      }),
-      filter: routeObj.route.$isOpened,
+    sample({
+      clock: recheckLifecycle.left,
       target: routeObj.route.left,
+    });
+
+    // Reset $isOpenedManually
+    sample({
+      clock: routesEntered,
+      fn: () => false,
+      target: $isOpenedManually,
     });
   }
 
