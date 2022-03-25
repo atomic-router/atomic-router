@@ -100,8 +100,8 @@ export const createHistoryRouter = (params: {
     },
   });
 
-  // Triggered whenever some route.open.doneData is triggered
-  const enteredFx = createEffect<EnterParams<any>, PushParams>(
+  // Triggered whenever some route.navigate.doneData is triggered
+  const openedFx = createEffect<EnterParams<any>, PushParams>(
     ({ route, params, query }) => {
       const path = buildPath({
         pathCreator: route.path,
@@ -117,26 +117,26 @@ export const createHistoryRouter = (params: {
     }
   );
 
-  // Recalculate entered/left routes
+  // Recalculate opened/closed routes
   const recalculateFx = createEffect<
     {
       path: string;
       query: RouteQuery;
     },
     {
-      entered: RecheckResult<any>[];
-      left: RecheckResult<any>[];
+      opened: RecheckResult<any>[];
+      closed: RecheckResult<any>[];
     }
   >(({ path, query }) => {
-    const entered = [] as RecheckResult<any>[];
-    const left = [] as RecheckResult<any>[];
+    const opened = [] as RecheckResult<any>[];
+    const closed = [] as RecheckResult<any>[];
 
     for (const route of remappedRoutes) {
       const { matches, params } = matchPath({
         pathCreator: route.path,
         actualPath: path,
       });
-      (matches ? entered : left).push({
+      (matches ? opened : closed).push({
         route,
         params,
         query,
@@ -144,8 +144,8 @@ export const createHistoryRouter = (params: {
     }
 
     return {
-      entered,
-      left,
+      opened,
+      closed,
     };
   });
 
@@ -153,12 +153,12 @@ export const createHistoryRouter = (params: {
 
   $query.on(recalculateFx.done, (_prev, { params: { query } }) => query);
 
-  $activeRoutes.on(recalculateFx.doneData, (_prev, { entered }) =>
-    entered.map(recheckResult => recheckResult.route.route)
+  $activeRoutes.on(recalculateFx.doneData, (_prev, { opened }) =>
+    opened.map(recheckResult => recheckResult.route.route)
   );
 
   sample({
-    clock: enteredFx.doneData,
+    clock: openedFx.doneData,
     target: pushFx,
   });
 
@@ -167,15 +167,15 @@ export const createHistoryRouter = (params: {
   //   target: recalculateFx,
   // });
 
-  // Trigger 404 if no routes were entered
+  // Trigger 404 if no routes were opened
   guard({
     clock: recalculateFx.doneData,
-    filter: ({ entered }) => entered.length === 0,
+    filter: ({ opened }) => opened.length === 0,
     target: routeNotFound,
   });
 
-  const routesEntered = recalculateFx.doneData.map(({ entered }) => entered);
-  const routesLeft = recalculateFx.doneData.map(({ left }) => left);
+  const routesOpened = recalculateFx.doneData.map(({ opened }) => opened);
+  const routesClosed = recalculateFx.doneData.map(({ closed }) => closed);
 
   for (const routeObj of remappedRoutes) {
     const $isOpenedManually = createStore(false);
@@ -190,7 +190,7 @@ export const createHistoryRouter = (params: {
         params,
         query,
       }),
-      target: enteredFx,
+      target: openedFx,
     });
 
     const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
@@ -201,15 +201,15 @@ export const createHistoryRouter = (params: {
 
     const recheckLifecycle = {
       opened: guard({
-        clock: routesEntered.filterMap(containsCurrentRoute),
+        clock: routesOpened.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
       }),
       updated: guard({
-        clock: routesEntered.filterMap(containsCurrentRoute),
+        clock: routesOpened.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened,
       }),
-      left: guard({
-        clock: routesLeft.filterMap(containsCurrentRoute),
+      closed: guard({
+        clock: routesClosed.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened,
       }),
     };
@@ -231,15 +231,15 @@ export const createHistoryRouter = (params: {
       target: routeObj.route.opened,
     });
 
-    // Trigger .left() for the routes marked as "left"
+    // Trigger .closed() for the routes marked as "closed"
     sample({
-      clock: recheckLifecycle.left,
-      target: routeObj.route.left,
+      clock: recheckLifecycle.closed,
+      target: routeObj.route.closed,
     });
 
     // Reset $isOpenedManually
     sample({
-      clock: routesEntered,
+      clock: routesOpened,
       fn: () => false,
       target: $isOpenedManually,
     });

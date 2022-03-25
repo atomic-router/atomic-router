@@ -3,6 +3,7 @@ import {
   createEffect,
   createEvent,
   createStore,
+  sample,
   split,
 } from 'effector';
 import {
@@ -36,7 +37,9 @@ export const createRoute = <Params extends RouteParams>() => {
 
   const opened = createEvent<RouteParamsAndQuery<Params>>();
   const updated = createEvent<RouteParamsAndQuery<Params>>();
+  /** @deprecated Will be removed in 0.6.0. Use `route.closed` instead */
   const left = createEvent<void>();
+  const closed = createEvent<void>();
 
   $isOpened.on(opened, () => true).on(left, () => false);
 
@@ -55,6 +58,11 @@ export const createRoute = <Params extends RouteParams>() => {
       opened,
       updated,
     },
+  });
+
+  sample({
+    clock: closed,
+    target: left,
   });
 
   return {
