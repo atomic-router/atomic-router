@@ -3,4 +3,5 @@ export * from './create-history-router';
 export * from './utils/build-path';
 export * from './utils/is-route';
 export * from './utils/redirect';
+export * from './utils/chain-route';
 export * from './types';
