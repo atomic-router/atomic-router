@@ -10,7 +10,9 @@ type RedirectParams<T, Params> = {
 
 /** Opens passed `route` upon `clock` trigger */
 export const redirect = <T, Params>(options: RedirectParams<T, Params>) => {
-  const clock = options.clock || createEvent<T>();
+  const clock = options.clock
+    ? sample({ clock: options.clock })
+    : createEvent<T>();
   let params = toStore(options.params || {});
   let query = toStore(options.query || {});
 
