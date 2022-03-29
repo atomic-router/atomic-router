@@ -9,7 +9,9 @@ import {
   createStore,
   createEvent,
   scopeBind,
+  restore,
 } from 'effector';
+import { equals } from './utils/equals';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -218,9 +220,22 @@ export const createHistoryRouter = (params: {
     $isOpenedManually.on(navigatedManually, () => true);
 
     // Trigger .updated() for already opened routes marked as "opened"
-    guard({
+    const updated = guard({
       clock: recheckLifecycle.updated,
       filter: $isOpenedManually.map(isOpenedManually => !isOpenedManually),
+    });
+
+    sample({
+      source: restore(updated, null),
+      clock: guard({
+        clock: updated,
+        source: [routeObj.route.$params, routeObj.route.$query],
+        // Skip .updated() calls if params & query are the same
+        filter: ([params, query], next) => {
+          return !equals(params, next.params) || !equals(query, next.query);
+        },
+      }),
+      fn: payload => payload!,
       target: routeObj.route.updated,
     });
 
