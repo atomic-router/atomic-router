@@ -80,6 +80,7 @@ export const createHistoryRouter = (params: {
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
     serialize: 'ignore',
   });
+  const $isFirstCheckPassed = createStore(false);
 
   // @ts-expect-error
   const $history = createStore<History>(null, {
@@ -314,6 +315,16 @@ export const createHistoryRouter = (params: {
     target: subscribeHistoryFx,
   });
 
+  $isFirstCheckPassed.on(recalculateFx.doneData, () => true).reset($history);
+
+  const initialized = sample({
+    clock: guard({
+      clock: $isFirstCheckPassed,
+      filter: Boolean,
+    }),
+    source: { activeRoutes: $activeRoutes, path: $path, query: $query },
+  });
+
   return {
     $path,
     $query,
@@ -322,6 +333,7 @@ export const createHistoryRouter = (params: {
     setHistory,
     push: pushFx,
     routes: remappedRoutes,
+    initialized,
     routeNotFound,
   };
 };
