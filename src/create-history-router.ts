@@ -11,7 +11,7 @@ import {
   scopeBind,
   restore,
 } from 'effector';
-import { equals } from './utils/equals';
+import { paramsEqual } from './utils/equals';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -42,7 +42,7 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
 );
 
 const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
-  const next = [] as RouteObject<any>[];
+  const next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
       next.push(...routeObj.route.map(route => ({ ...routeObj, route })));
@@ -51,7 +51,24 @@ const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
       next.push(routeObj);
     }
   }
-  return next;
+  const derivedRoutes: RouteObject<any>[] = [];
+  const nonDerivedRoutes: RouteObject<any>[] = [];
+  for (const routeObj of next) {
+    // @ts-expect-error Internals
+    if (routeObj.route.settings.derived) {
+      derivedRoutes.push(routeObj);
+    } else {
+      nonDerivedRoutes.push(routeObj);
+    }
+  }
+  if (derivedRoutes.length) {
+    for (const derivedRoute of derivedRoutes) {
+      console.error(
+        `createHistoryRouter: ${derivedRoute.path} uses derived route. This won't work`
+      );
+    }
+  }
+  return nonDerivedRoutes;
 };
 
 export const createHistoryRouter = (params: {
@@ -233,7 +250,7 @@ export const createHistoryRouter = (params: {
         source: [routeObj.route.$params, routeObj.route.$query],
         // Skip .updated() calls if params & query are the same
         filter: ([params, query], next) => {
-          return !equals(params, next.params) || !equals(query, next.query);
+          return !paramsEqual(params, next.params) || !paramsEqual(query, next.query);
         },
       }),
       fn: payload => payload!,
