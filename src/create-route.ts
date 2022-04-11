@@ -5,6 +5,7 @@ import {
   createStore,
   sample,
   split,
+  Store,
 } from 'effector';
 import {
   RouteParams,
@@ -14,7 +15,13 @@ import {
   Kind,
 } from './types';
 
-export const createRoute = <Params extends RouteParams>() => {
+type createRouteParams = {
+  filter?: Store<boolean>;
+};
+
+export const createRoute = <Params extends RouteParams>(
+  params: createRouteParams = {}
+) => {
   const navigateFx = createEffect(
     async ({ params, query }: RouteParamsAndQuery<Params>) => {
       return {
@@ -66,6 +73,19 @@ export const createRoute = <Params extends RouteParams>() => {
     target: left,
   });
 
+  if (params.filter) {
+    const filter = params.filter;
+    split({
+      source: sample({ clock: filter }),
+      // @ts-expect-error
+      match: filter => (filter ? 'true' : 'false'),
+      cases: {
+        true: opened,
+        false: closed,
+      },
+    });
+  }
+
   const instance: RouteInstance<Params> = {
     $isOpened,
     $params,
@@ -77,6 +97,10 @@ export const createRoute = <Params extends RouteParams>() => {
     navigate: navigateFx,
     open: openFx,
     kind: Kind.ROUTE,
+    // @ts-expect-error Internal stuff
+    settings: {
+      derived: Boolean(params.filter),
+    },
   };
 
   return instance;
