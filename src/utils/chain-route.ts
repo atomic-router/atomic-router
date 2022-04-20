@@ -20,13 +20,13 @@ import { isRoute } from './is-route';
 type ChainRouteParamsWithEffect<Params> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
-  beforeOpen: Effect<RouteParamsAndQuery<Params>, any, any>;
+  beforeOpen: Effect<RouteParamsAndQuery<Params> | void, any, any>;
 };
 
 type ChainRouteParamsAdvanced<Params> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
-  beforeOpen: Clock<RouteParamsAndQuery<Params>>;
+  beforeOpen: Clock<RouteParamsAndQuery<Params> | void>;
   openOn: Clock<any>;
   cancelOn?: Clock<any>;
 };
@@ -34,7 +34,7 @@ type ChainRouteParamsAdvanced<Params> = {
 type ChainRouteParamsNormalized<Params> = {
   route: RouteInstance<Params>;
   chainedRoute: RouteInstance<Params>;
-  beforeOpen: Clock<RouteParamsAndQuery<Params>>;
+  beforeOpen: Clock<RouteParamsAndQuery<Params> | void>;
   openOn: Clock<any>;
   cancelOn: Clock<any>;
 };
