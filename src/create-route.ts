@@ -19,7 +19,7 @@ type createRouteParams = {
   filter?: Store<boolean>;
 };
 
-export const createRoute = <Params extends RouteParams>(
+export const createRoute = <Params extends RouteParams = {}>(
   params: createRouteParams = {}
 ) => {
   const navigateFx = createEffect(
