@@ -142,19 +142,22 @@ export const createHistoryRouter = (params: {
     {
       path: string;
       query: RouteQuery;
+      hash: string;
     },
     {
       opened: RecheckResult<any>[];
       closed: RecheckResult<any>[];
     }
-  >(({ path, query }) => {
+  >(({ path, query, hash }) => {
     const opened = [] as RecheckResult<any>[];
     const closed = [] as RecheckResult<any>[];
 
     for (const route of remappedRoutes) {
+      // NOTE: Use hash string as well if route.path contains #
+      const actualPath = route.path.includes('#') ? `${path}${hash}` : path;
       const { matches, params } = matchPath({
         pathCreator: route.path,
-        actualPath: path,
+        actualPath: actualPath,
       });
       (matches ? opened : closed).push({
         route,
@@ -290,16 +293,17 @@ export const createHistoryRouter = (params: {
       history: $history,
     },
     effect: async ({ history }) => {
-      const [path, query] = [
+      const [path, query, hash] = [
         history.location.pathname,
         Object.fromEntries(
-          // @ts-expect-error
           new URLSearchParams(history.location.search)
         ) as RouteQuery,
+        history.location.hash,
       ];
       return {
         path,
         query,
+        hash,
       };
     },
   });

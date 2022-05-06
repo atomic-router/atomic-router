@@ -13,6 +13,7 @@ const bar = createRoute();
 const first = createRoute();
 const firstClone = createRoute();
 const withParams = createRoute<{ postId: string }>();
+const hashed = createRoute<{ token: string }>();
 
 const router = createHistoryRouter({
   routes: [
@@ -21,6 +22,7 @@ const router = createHistoryRouter({
     { route: first, path: '/first' },
     { route: firstClone, path: '/first' },
     { route: withParams, path: '/posts/:postId' },
+    { route: hashed, path: '/test/#/swap/:token' },
   ],
 });
 
@@ -139,6 +141,22 @@ describe('Lifecycle', () => {
     history.push('/foo');
     await sleep(0);
     expect(closed).toBeCalledTimes(1);
+  });
+});
+
+describe('Hash mode', () => {
+  it('If hash is set as path, uses it', async () => {
+    const history = createMemoryHistory();
+    history.push('/');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    history.push('/test/#/swap/ETH');
+    await sleep(0);
+    expect(scope.getState(hashed.$isOpened)).toBe(true);
+    expect(scope.getState(hashed.$params)).toEqual({ token: 'ETH' });
   });
 });
 

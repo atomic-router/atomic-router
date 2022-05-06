@@ -2,7 +2,10 @@ import { match, compile } from 'path-to-regexp';
 
 import { RouteParams, PathCreator, RouteQuery } from '../types';
 
-const getPathname = (path: string) => new URL(`http://_${path}`).pathname;
+const getPathname = (path: string) => {
+  const url = new URL(`http://_${path}`);
+  return [url.pathname, url.hash].join('');
+};
 
 type BuildPathParams<Params extends RouteParams> = {
   pathCreator: PathCreator<Params>;
