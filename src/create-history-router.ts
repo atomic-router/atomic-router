@@ -214,9 +214,16 @@ export const createHistoryRouter = (params: {
     });
 
     const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
-      return recheckResults.find(
+      const result = recheckResults.find(
         recheckResult => recheckResult.route === routeObj
       );
+      if (!result) {
+        return;
+      }
+      return {
+        params: result.params,
+        query: result.query,
+      };
     };
 
     const recheckLifecycle = {
@@ -250,7 +257,9 @@ export const createHistoryRouter = (params: {
         source: [routeObj.route.$params, routeObj.route.$query],
         // Skip .updated() calls if params & query are the same
         filter: ([params, query], next) => {
-          return !paramsEqual(params, next.params) || !paramsEqual(query, next.query);
+          return (
+            !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
+          );
         },
       }),
       fn: payload => payload!,
