@@ -2,6 +2,7 @@
   "version": "0.5.0-dev.16",
   "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/esm/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
@@ -14,7 +15,7 @@
     "start": "tsup src/index.ts --watch",
     "test": "jest -i",
     "test:watch": "jest --watch -i",
-    "build": "npm run test && tsup src/index.ts --minify --dts",
+    "build": "npm run test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
     "prepare": "npm run build"
   },
   "peerDependencies": {
@@ -50,6 +51,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/kelin2025/atomic-router"
-  },
-  "module": "dist/atomic-router.esm.js"
+  }
 }
