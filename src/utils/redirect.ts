@@ -1,4 +1,12 @@
-import { Clock, createEvent, createStore, is, sample, Store } from 'effector';
+import {
+  Clock,
+  createEvent,
+  createStore,
+  Event,
+  is,
+  sample,
+  Store,
+} from 'effector';
 import { RouteInstance, RouteQuery } from '../types';
 
 type RedirectParams<T, Params> = {
@@ -11,7 +19,7 @@ type RedirectParams<T, Params> = {
 /** Opens passed `route` upon `clock` trigger */
 export const redirect = <T, Params>(options: RedirectParams<T, Params>) => {
   const clock = options.clock
-    ? sample({ clock: options.clock })
+    ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
   let params = toStore(options.params || {});
   let query = toStore(options.query || {});

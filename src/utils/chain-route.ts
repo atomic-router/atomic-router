@@ -71,8 +71,10 @@ const normalizeChainRouteParams = <Params>(
     route: advancedParams.route,
     chainedRoute: advancedParams.chainedRoute || createRoute<Params>(),
     beforeOpen: advancedParams.beforeOpen,
-    openOn: sample({ clock: advancedParams.openOn }),
-    cancelOn: sample({ clock: advancedParams.cancelOn || createEvent() }),
+    openOn: sample({ clock: advancedParams.openOn as Unit<any> }),
+    cancelOn: sample({
+      clock: (advancedParams.cancelOn as Unit<any>) || createEvent(),
+    }),
   };
 };
 
@@ -87,13 +89,8 @@ const normalizeChainRouteParams = <Params>(
  * @returns {RouteInstance<any>} `chainedRoute`
  */
 export const chainRoute = <Params>(params: chainRouteParams<Params>) => {
-  const {
-    route,
-    chainedRoute,
-    beforeOpen,
-    openOn,
-    cancelOn,
-  } = normalizeChainRouteParams(params);
+  const { route, chainedRoute, beforeOpen, openOn, cancelOn } =
+    normalizeChainRouteParams(params);
   const $params = createStore({} as StoreValue<typeof route['$params']>);
   const $query = createStore({} as StoreValue<typeof route['$query']>);
   const $hasSameParams = combine(
