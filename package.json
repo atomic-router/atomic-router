@@ -48,5 +48,12 @@
     "type": "git",
     "url": "https://github.com/kelin2025/atomic-router"
   },
-  "module": "dist/atomic-router.esm.js"
+  "module": "dist/atomic-router.esm.js",
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      }
+    }
+  }
 }
