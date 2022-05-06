@@ -76,6 +76,7 @@ export const createRoute = <Params extends RouteParams = {}>(
   if (params.filter) {
     const filter = params.filter;
     split({
+      // @ts-expect-error
       source: sample({ clock: filter }),
       // @ts-expect-error
       match: filter => (filter ? 'true' : 'false'),
