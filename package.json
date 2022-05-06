@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "tsdx watch",
+    "test:watch": "tsdx test --watch",
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
