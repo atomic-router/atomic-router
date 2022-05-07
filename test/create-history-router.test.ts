@@ -172,4 +172,30 @@ describe('Other checks', () => {
     expect(scope.getState(first.$isOpened)).toBe(true);
     expect(scope.getState(firstClone.$isOpened)).toBe(true);
   });
+
+  it('If the same route is passed twice, trigger it only once', async () => {
+    const testRoute = createRoute();
+    const opened = jest.fn();
+    testRoute.opened.watch(opened);
+    const updated = jest.fn();
+    testRoute.updated.watch(updated);
+    const history = createMemoryHistory();
+    history.push('/test/foo');
+    const router = createHistoryRouter({
+      routes: [
+        { route: testRoute, path: '/test/:foo' },
+        { route: testRoute, path: '/test/:foo/:bar' },
+      ],
+    });
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    history.push('/test/bar');
+    history.push('/test/foo/bar');
+    await sleep(0);
+    expect(opened).toBeCalledTimes(1);
+    expect(updated).toBeCalledTimes(2);
+  });
 });

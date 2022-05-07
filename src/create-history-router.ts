@@ -149,8 +149,8 @@ export const createHistoryRouter = (params: {
       closed: RecheckResult<any>[];
     }
   >(({ path, query, hash }) => {
-    const opened = [] as RecheckResult<any>[];
-    const closed = [] as RecheckResult<any>[];
+    let opened = [] as RecheckResult<any>[];
+    let closed = [] as RecheckResult<any>[];
 
     for (const route of remappedRoutes) {
       // NOTE: Use hash string as well if route.path contains #
@@ -165,6 +165,20 @@ export const createHistoryRouter = (params: {
         query,
       });
     }
+
+    // Checking for routes we need to close
+    // Remove all that are marked to be opened
+    for (const idx in closed) {
+      // @ts-expect-error
+      const closedIdx = idx as number;
+      if (
+        opened.some(obj => obj.route.route === closed[closedIdx].route.route)
+      ) {
+        // @ts-expect-error
+        closed[closedIdx] = null;
+      }
+    }
+    closed = closed.filter(Boolean);
 
     return {
       opened,
@@ -218,7 +232,7 @@ export const createHistoryRouter = (params: {
 
     const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
       const result = recheckResults.find(
-        recheckResult => recheckResult.route === routeObj
+        recheckResult => recheckResult.route.route === routeObj.route
       );
       if (!result) {
         return;
