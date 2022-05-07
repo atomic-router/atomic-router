@@ -41,8 +41,11 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
   }
 );
 
-const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
-  const next: RouteObject<any>[] = [];
+const remapRouteObjects = (
+  objects: UnmappedRouteObject<any>[],
+  basePath: string = ''
+) => {
+  let next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
       next.push(...routeObj.route.map(route => ({ ...routeObj, route })));
@@ -51,6 +54,10 @@ const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
       next.push(routeObj);
     }
   }
+  next = next.map(routeObj => ({
+    ...routeObj,
+    path: `${basePath}${routeObj.path}`,
+  }));
   const derivedRoutes: RouteObject<any>[] = [];
   const nonDerivedRoutes: RouteObject<any>[] = [];
   for (const routeObj of next) {
@@ -72,6 +79,7 @@ const remapRouteObjects = (objects: UnmappedRouteObject<any>[]) => {
 };
 
 export const createHistoryRouter = (params: {
+  base?: string;
   routes: UnmappedRouteObject<any>[];
   hydrate?: boolean;
 }) => {
@@ -87,7 +95,7 @@ export const createHistoryRouter = (params: {
     query: RouteQuery;
   };
 
-  const remappedRoutes = remapRouteObjects(params.routes);
+  const remappedRoutes = remapRouteObjects(params.routes, params.base);
 
   const setHistory = createEvent<History>();
   const routeNotFound = createEvent();
@@ -154,9 +162,11 @@ export const createHistoryRouter = (params: {
 
     for (const route of remappedRoutes) {
       // NOTE: Use hash string as well if route.path contains #
-      const actualPath = route.path.includes('#') ? `${path}${hash}` : path;
+      const actualPath = route.path.includes('#')
+        ? `${path}${hash}`
+        : `${path}`;
       const { matches, params } = matchPath({
-        pathCreator: route.path,
+        pathCreator: `${route.path}`,
         actualPath: actualPath,
       });
       (matches ? opened : closed).push({

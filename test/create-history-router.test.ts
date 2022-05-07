@@ -199,3 +199,68 @@ describe('Other checks', () => {
     expect(updated).toBeCalledTimes(2);
   });
 });
+
+describe('Base', () => {
+  it('Works with root URI', async () => {
+    const foo = createRoute();
+    const bar = createRoute();
+    const router = createHistoryRouter({
+      base: '/root',
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+      ],
+    });
+
+    const history = createMemoryHistory();
+    history.push('/root/foo');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(scope.getState(foo.$isOpened)).toBe(true);
+  });
+
+  it('Works with hash', async () => {
+    const foo = createRoute();
+    const bar = createRoute();
+    const router = createHistoryRouter({
+      base: '/#',
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+      ],
+    });
+
+    const history = createMemoryHistory();
+    history.push('/#/foo');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(scope.getState(foo.$isOpened)).toBe(true);
+  });
+
+  it('Works with URL', async () => {
+    const foo = createRoute();
+    const bar = createRoute();
+    const router = createHistoryRouter({
+      base: 'https://foobar.com',
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+      ],
+    });
+
+    const history = createMemoryHistory();
+    history.push('https://foobar.com/foo');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(scope.getState(foo.$isOpened)).toBe(true);
+  });
+});
