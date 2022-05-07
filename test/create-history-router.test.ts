@@ -200,8 +200,8 @@ describe('Other checks', () => {
   });
 });
 
-describe('Base', () => {
-  it('Works with root URI', async () => {
+describe('Router with params.base', () => {
+  describe('Root URI (e.g. /root)', () => {
     const foo = createRoute();
     const bar = createRoute();
     const router = createHistoryRouter({
@@ -212,17 +212,30 @@ describe('Base', () => {
       ],
     });
 
-    const history = createMemoryHistory();
-    history.push('/root/foo');
-    const scope = fork();
-    await allSettled(router.setHistory, {
-      scope,
-      params: history,
+    it('Opens correct route', async () => {
+      const history = createMemoryHistory();
+      history.push('/root/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(true);
     });
-    expect(scope.getState(foo.$isOpened)).toBe(true);
+
+    it('Ignores if root does not match', async () => {
+      const history = createMemoryHistory();
+      history.push('/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(false);
+    });
   });
 
-  it('Works with hash', async () => {
+  describe('Hash root (/#)', () => {
     const foo = createRoute();
     const bar = createRoute();
     const router = createHistoryRouter({
@@ -233,34 +246,60 @@ describe('Base', () => {
       ],
     });
 
-    const history = createMemoryHistory();
-    history.push('/#/foo');
-    const scope = fork();
-    await allSettled(router.setHistory, {
-      scope,
-      params: history,
+    it('Opens correct route', async () => {
+      const history = createMemoryHistory();
+      history.push('/#/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(true);
     });
-    expect(scope.getState(foo.$isOpened)).toBe(true);
+
+    it('Ignores if root does not match', async () => {
+      const history = createMemoryHistory();
+      history.push('/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(false);
+    });
   });
 
-  it('Works with URL', async () => {
-    const foo = createRoute();
-    const bar = createRoute();
-    const router = createHistoryRouter({
-      base: 'https://foobar.com',
-      routes: [
-        { route: foo, path: '/foo' },
-        { route: bar, path: '/bar' },
-      ],
+  describe('URL (e.g. https://foobar.com)', () => {
+    it('Sets correct route', async () => {
+      const foo = createRoute();
+      const bar = createRoute();
+      const router = createHistoryRouter({
+        base: 'https://foobar.com',
+        routes: [
+          { route: foo, path: '/foo' },
+          { route: bar, path: '/bar' },
+        ],
+      });
+
+      const history = createMemoryHistory();
+      history.push('https://foobar.com/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(true);
     });
 
-    const history = createMemoryHistory();
-    history.push('https://foobar.com/foo');
-    const scope = fork();
-    await allSettled(router.setHistory, {
-      scope,
-      params: history,
+    it('Ignores if root does not match', async () => {
+      const history = createMemoryHistory();
+      history.push('/foo');
+      const scope = fork();
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+      expect(scope.getState(foo.$isOpened)).toBe(false);
     });
-    expect(scope.getState(foo.$isOpened)).toBe(true);
   });
 });
