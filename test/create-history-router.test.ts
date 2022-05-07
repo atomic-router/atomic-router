@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { allSettled, fork } from 'effector';
 import { createMemoryHistory } from 'history';
 import { createHistoryRouter, createRoute } from '../src';
@@ -283,22 +286,29 @@ describe('Router with params.base', () => {
 
       const history = createMemoryHistory();
       history.push('https://foobar.com/foo');
+      console.log(history.location);
       const scope = fork();
       await allSettled(router.setHistory, {
         scope,
         params: history,
       });
+      expect(history.createHref(history.location)).toBe(
+        'https://foobar.com/foo'
+      );
       expect(scope.getState(foo.$isOpened)).toBe(true);
     });
 
     it('Ignores if root does not match', async () => {
       const history = createMemoryHistory();
-      history.push('/foo');
+      history.push('https://foobared.com/foo');
       const scope = fork();
       await allSettled(router.setHistory, {
         scope,
         params: history,
       });
+      expect(history.createHref(history.location)).toBe(
+        'https://foobared.com/foo'
+      );
       expect(scope.getState(foo.$isOpened)).toBe(false);
     });
   });
