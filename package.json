@@ -37,11 +37,6 @@
   "dependencies": {
     "path-to-regexp": "^6.2.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
   "prettier": {
     "printWidth": 80,
     "semi": true,
