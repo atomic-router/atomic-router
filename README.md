@@ -9,141 +9,160 @@ Simple routing implementation that provides abstraction layer instead of inline 
 - Framework-agnostic
 - Isomorphic (pass your own `history` instance and it works everywhere)
 
+## View-library bindings
+
+- [**React**](https://github.com/kelin2025/atomic-router-react)
+
 ## Installation
+
 ```bash
 $ npm install effector atomic-router
 ```
 
-## View-library bindings
-- [React](https://github.com/kelin2025/atomic-router-react)
-
 ## Initialization
+
 Create your routes wherever you want:
+
 ```ts
 // pages/home
-import { createRoute } from 'atomic-router'
-export const homeRoute = createRoute()
+import { createRoute } from 'atomic-router';
+export const homeRoute = createRoute();
 
 // pages/posts
-import { createRoute } from 'atomic-router'
-export const postsRoute = createRoute<{ postId: string }>()
+import { createRoute } from 'atomic-router';
+export const postsRoute = createRoute<{ postId: string }>();
 ```
+
 And then create a router
+
 ```ts
 // app/routing
-import { createHistoryRouter } from 'atomic-router'
-import { createBrowserHistory, createMemoryHistory } from 'history'
-import { homeRoute } from '@/pages/home'
-import { postsRoute } from '@/pages/home'
+import { createHistoryRouter } from 'atomic-router';
+import { createBrowserHistory, createMemoryHistory } from 'history';
+import { homeRoute } from '@/pages/home';
+import { postsRoute } from '@/pages/home';
 
 const routes = [
   { path: '/', route: homeRoute },
   { path: '/posts', route: postsRoute },
-]
+];
 
 const router = createHistoryRouter({
-  routes: routes
-})
+  routes: routes,
+});
 
 // Attach history
 const history = isSsr ? createMemoryHistory() : createBrowserHistory();
-router.setHistory(history)
+router.setHistory(history);
 ```
 
 ## Why atomic routes?
+
 There are 3 purposes for using atomic routes:
+
 - To abstract the application from hard-coded paths
 - To provide you a declarative API for a comfortable work
 - To avoid extra responsibility in app features
 
 ## Examples
+
 <details>
   <summary>Fetch post on page open</summary>
 
-  1. In your model, create effect and store which you'd like to trigger:
-  ```tsx
-  export const getPostFx = createEffect<{ postId:string }, Post>(({ postId }) => {
-    return api.get(`/posts/${postId}`)
-  })
-  
-  export const $post = restore(getPostFx.doneData, null)
-  ```
+1. In your model, create effect and store which you'd like to trigger:
 
-  2. And just trigger it when `postPage.$params` change:
-  ```tsx
-  //route.ts
-  import { createRoute } from 'atomic-router'
-  import { getPostFx } from './model'
+```tsx
+export const getPostFx = createEffect<{ postId: string }, Post>(
+  ({ postId }) => {
+    return api.get(`/posts/${postId}`);
+  }
+);
 
-  const postPage = createRoute<{ postId: string }>()
+export const $post = restore(getPostFx.doneData, null);
+```
 
-  guard({
-    source: postPage.$params,
-    filter: postPage.$isOpened,
-    target: getPostFx
-  })
-  ```
+2. And just trigger it when `postPage.$params` change:
+
+```tsx
+//route.ts
+import { createRoute } from 'atomic-router';
+import { getPostFx } from './model';
+
+const postPage = createRoute<{ postId: string }>();
+
+guard({
+  source: postPage.$params,
+  filter: postPage.$isOpened,
+  target: getPostFx,
+});
+```
+
 </details>
 <details>
   <summary>Avoid breaking architecture</summary>
 
-  Imagine that we have a good architecture, where our code can be presented as a dependency tree.  
-  So, we don't make neither circular imports, nor they go backwards.  
-  For example, we have `Card -> PostCard -> PostsList -> PostsPage` flow, where `PostsList` doesn't know about `PostsPage`, `PostCard` doesn't know about `PostsList` etc.  
-    
-  But now we need our `PostCard` to open `PostsPage` route.  
-  And usually, we add extra responisbility by letting it know what the route is
+Imagine that we have a good architecture, where our code can be presented as a dependency tree.  
+ So, we don't make neither circular imports, nor they go backwards.  
+ For example, we have `Card -> PostCard -> PostsList -> PostsPage` flow, where `PostsList` doesn't know about `PostsPage`, `PostCard` doesn't know about `PostsList` etc.
 
-  ```tsx
-  const PostCard = ({ id }) => {
-    const post = usePost(id)
+But now we need our `PostCard` to open `PostsPage` route.  
+ And usually, we add extra responisbility by letting it know what the route is
 
-    return (
-      <Card>
-        <Card.Title>{post.title}</Card.Title>
-        <Card.Description>{post.title}</Card.Description>
-        {/* NOOOO! */}
-        <Link to={postsPageRoute} params={{ postId: id }}>Read More</Link>
-      </Card>
-    )
-  }
-  ```
+```tsx
+const PostCard = ({ id }) => {
+  const post = usePost(id);
 
-  With `atomic-router`, you can create a "personal" route for this card:
-  ```tsx
-  const readMoreRoute = createRoute<{ postId: id }>()
-  ```
-  
-  And then you can just give it the same path as your `PostsPage` has:
+  return (
+    <Card>
+      <Card.Title>{post.title}</Card.Title>
+      <Card.Description>{post.title}</Card.Description>
+      {/* NOOOO! */}
+      <Link to={postsPageRoute} params={{ postId: id }}>
+        Read More
+      </Link>
+    </Card>
+  );
+};
+```
 
-  ```tsx
-  const routes = [
-    { path: '/posts/:postId', route: readMoreRoute },
-    { path: '/posts/:postId', route: postsPageRoute },
-  ]
-  ```
+With `atomic-router`, you can create a "personal" route for this card:
 
-  Both will work perfectly fine as they are completely independent
+```tsx
+const readMoreRoute = createRoute<{ postId: id }>();
+```
+
+And then you can just give it the same path as your `PostsPage` has:
+
+```tsx
+const routes = [
+  { path: '/posts/:postId', route: readMoreRoute },
+  { path: '/posts/:postId', route: postsPageRoute },
+];
+```
+
+Both will work perfectly fine as they are completely independent
+
 </details>
 
 ## API Reference
+
 ```tsx
 // Params is an object-type describing query params for your route
-const route = createRoute<Params>()
-  
+const route = createRoute<Params>();
+
 // Stores
-route.$isOpened  // Store<boolean>
-route.$params    // Store<{ [key]: string }>
-route.$query     // Store<{ [key]: string }>
+route.$isOpened; // Store<boolean>
+route.$params; // Store<{ [key]: string }>
+route.$query; // Store<{ [key]: string }>
 
 // Events (only watch 'em)
-route.opened     // Event<{ params: RouteParams, query: RouteQuery }>
-route.updated    // Event<{ params: RouteParams, query: RouteQuery }>
-route.left       // Event<{ params: RouteParams, query: RouteQuery }>
+route.opened; // Event<{ params: RouteParams, query: RouteQuery }>
+route.updated; // Event<{ params: RouteParams, query: RouteQuery }>
+route.left; // Event<{ params: RouteParams, query: RouteQuery }>
 
 // Effects
-route.open       // Effect<RouteParams>
-route.navigate   // Effect<{ params: RouteParams, query: RouteQuery }>
-  
+route.open; // Effect<RouteParams>
+route.navigate; // Effect<{ params: RouteParams, query: RouteQuery }>
+
 // Note: Store, Event and Effect is imported from 'effector' package
 ```
