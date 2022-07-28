@@ -6,7 +6,7 @@ import { createMemoryHistory } from 'history';
 import { createHistoryRouter, createRoute } from '../src';
 
 const sleep = (t: number) => {
-  return new Promise(r => {
+  return new Promise((r) => {
     setTimeout(r, t);
   });
 };
@@ -272,44 +272,44 @@ describe('Router with params.base', () => {
     });
   });
 
-  describe('URL (e.g. https://foobar.com)', () => {
-    it('Sets correct route', async () => {
-      const foo = createRoute();
-      const bar = createRoute();
-      const router = createHistoryRouter({
-        base: 'https://foobar.com',
-        routes: [
-          { route: foo, path: '/foo' },
-          { route: bar, path: '/bar' },
-        ],
-      });
+  // NOTE: Not needed feature, but would be cool to add in a future
+  // describe('URL (e.g. https://foobar.com)', () => {
+  //   it('Sets correct route', async () => {
+  //     const foo = createRoute();
+  //     const bar = createRoute();
+  //     const router = createHistoryRouter({
+  //       base: 'https://foobar.com',
+  //       routes: [
+  //         { route: foo, path: '/foo' },
+  //         { route: bar, path: '/bar' },
+  //       ],
+  //     });
 
-      const history = createMemoryHistory();
-      history.push('https://foobar.com/foo');
-      console.log(history.location);
-      const scope = fork();
-      await allSettled(router.setHistory, {
-        scope,
-        params: history,
-      });
-      expect(history.createHref(history.location)).toBe(
-        'https://foobar.com/foo'
-      );
-      expect(scope.getState(foo.$isOpened)).toBe(true);
-    });
+  //     const history = createMemoryHistory();
+  //     history.push('https://foobar.com/foo');
+  //     const scope = fork();
+  //     await allSettled(router.setHistory, {
+  //       scope,
+  //       params: history,
+  //     });
+  //     expect(history.createHref(history.location)).toBe(
+  //       'https://foobar.com/foo'
+  //     );
+  //     expect(scope.getState(foo.$isOpened)).toBe(true);
+  //   });
 
-    it('Ignores if root does not match', async () => {
-      const history = createMemoryHistory();
-      history.push('https://foobared.com/foo');
-      const scope = fork();
-      await allSettled(router.setHistory, {
-        scope,
-        params: history,
-      });
-      expect(history.createHref(history.location)).toBe(
-        'https://foobared.com/foo'
-      );
-      expect(scope.getState(foo.$isOpened)).toBe(false);
-    });
-  });
+  //   it('Ignores if root does not match', async () => {
+  //     const history = createMemoryHistory();
+  //     history.push('https://foobared.com/foo');
+  //     const scope = fork();
+  //     await allSettled(router.setHistory, {
+  //       scope,
+  //       params: history,
+  //     });
+  //     expect(history.createHref(history.location)).toBe(
+  //       'https://foobared.com/foo'
+  //     );
+  //     expect(scope.getState(foo.$isOpened)).toBe(false);
+  //   });
+  // });
 });
