@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0-dev.21",
+  "version": "0.5.0-dev.22",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/esm/index.js",
@@ -20,13 +20,13 @@
   },
   "peerDependencies": {
     "effector": "^22",
-    "history": "^4.10.1"
+    "history": "^5.3.0"
   },
   "devDependencies": {
     "@types/history": "^4.7.11",
     "@types/jest": "^27.5.0",
     "effector": "^22",
-    "history": "^4.10.1",
+    "history": "^5.3.0",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
     "ts-jest": "^28.0.1",
