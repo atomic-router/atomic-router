@@ -12,6 +12,7 @@ Simple routing implementation that provides abstraction layer instead of inline 
 ## View-library bindings
 
 - [**React**](https://github.com/kelin2025/atomic-router-react)
+- [**Forest**](https://github.com/sergeysova/atomic-router-forest)
 
 ## Installation
 
