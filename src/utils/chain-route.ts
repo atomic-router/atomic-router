@@ -10,12 +10,35 @@ import {
   Effect,
   StoreValue,
   createEvent,
+  NoInfer,
+  EffectParams,
+  attach,
 } from 'effector';
 
 import { createRoute } from '../create-route';
-import { RouteInstance, RouteParamsAndQuery } from '../types';
+import { RouteInstance, RouteParamsAndQuery, RouteQuery } from '../types';
 
 import { isRoute } from './is-route';
+
+type ChainRouteParamsInternalAttach<
+  Params,
+  FX extends Effect<any, any, any>
+> = {
+  route: RouteInstance<Params>;
+  chainedRoute?: RouteInstance<Params>;
+  beforeOpen: {
+    effect: FX;
+    mapParams: ({
+      params,
+      query,
+    }: {
+      params: Params;
+      query: RouteQuery;
+    }) => NoInfer<EffectParams<FX>>;
+  };
+  openOn?: Clock<any>;
+  cancelOn?: Clock<any>;
+};
 
 type ChainRouteParamsWithEffect<Params> = {
   route: RouteInstance<Params>;
@@ -39,31 +62,43 @@ type ChainRouteParamsNormalized<Params> = {
   cancelOn: Clock<any>;
 };
 
-type chainRouteParams<Params> =
+type chainRouteParams<Params, FX extends Effect<any, any, any>> =
   | RouteInstance<Params>
   | ChainRouteParamsWithEffect<Params>
-  | ChainRouteParamsAdvanced<Params>;
+  | ChainRouteParamsAdvanced<Params>
+  | ChainRouteParamsInternalAttach<Params, FX>;
 
-const normalizeChainRouteParams = <Params>(
-  params: chainRouteParams<Params>
+const normalizeChainRouteParams = <Params, FX extends Effect<any, any, any>>(
+  params: chainRouteParams<Params, FX>
 ): ChainRouteParamsNormalized<Params> => {
   if (isRoute(params)) {
     return {
       route: params,
       chainedRoute: createRoute<Params>(),
       beforeOpen: createEvent(),
-      openOn: [params.opened, params.closed],
-      cancelOn: [createEvent()],
+      openOn: merge([params.opened, params.closed]),
+      cancelOn: merge([createEvent()]),
     };
   }
-  const effectParams = params as ChainRouteParamsWithEffect<Params>;
-  if (!('enterOn' in effectParams) && is.effect(effectParams.beforeOpen)) {
+  const effectParams = { ...params } as ChainRouteParamsWithEffect<Params>;
+  if (!is.unit(effectParams.beforeOpen)) {
+    effectParams.beforeOpen = attach(effectParams.beforeOpen);
+  }
+  if (is.effect(effectParams.beforeOpen)) {
     return {
       route: effectParams.route,
       chainedRoute: effectParams.chainedRoute || createRoute<Params>(),
       beforeOpen: effectParams.beforeOpen,
-      openOn: effectParams.beforeOpen.doneData,
-      cancelOn: effectParams.beforeOpen.failData,
+      openOn:
+        'openOn' in effectParams
+          ? // @ts-expect-error
+            effectParams.openOn
+          : effectParams.beforeOpen.doneData,
+      cancelOn:
+        'cancelOn' in effectParams
+          ? // @ts-expect-error
+            effectParams.cancelOn
+          : effectParams.beforeOpen.failData,
     };
   }
   const advancedParams = params as ChainRouteParamsAdvanced<Params>;
@@ -78,6 +113,22 @@ const normalizeChainRouteParams = <Params>(
   };
 };
 
+function chainRoute<Params>(
+  instance: RouteInstance<Params>
+): RouteInstance<Params>;
+
+function chainRoute<Params>(
+  config: ChainRouteParamsWithEffect<Params>
+): RouteInstance<Params>;
+
+function chainRoute<Params>(
+  config: ChainRouteParamsAdvanced<Params>
+): RouteInstance<Params>;
+
+function chainRoute<Params, FX extends Effect<any, any, any>>(
+  config: ChainRouteParamsInternalAttach<Params, FX>
+): RouteInstance<Params>;
+
 /**
  * Creates chained route
  * @link https://github.com/Kelin2025/atomic-router/issues/10
@@ -88,7 +139,9 @@ const normalizeChainRouteParams = <Params>(
  * @param {Clock<any>} params.cancelOn - Cancels chain
  * @returns {RouteInstance<any>} `chainedRoute`
  */
-export const chainRoute = <Params>(params: chainRouteParams<Params>) => {
+function chainRoute<Params, FX extends Effect<any, any, any>>(
+  params: chainRouteParams<Params, FX>
+) {
   const { route, chainedRoute, beforeOpen, openOn, cancelOn } =
     normalizeChainRouteParams(params);
   const $params = createStore({} as StoreValue<typeof route['$params']>);
@@ -130,4 +183,6 @@ export const chainRoute = <Params>(params: chainRouteParams<Params>) => {
     target: chainedRoute.closed,
   });
   return chainedRoute;
-};
+}
+
+export { chainRoute };
