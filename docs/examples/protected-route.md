@@ -1,0 +1,3 @@
+# Protected route
+
+WIP
