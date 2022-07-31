@@ -9,11 +9,9 @@ Simple routing implementation that provides abstraction layer instead of inline 
 - Framework-agnostic
 - Isomorphic (pass your own `history` instance and it works everywhere)
 
-## View-library bindings
+### Read the docs: [atomic-router.github.io](https://atomic-router.github.io)
 
-- [**React**](https://github.com/kelin2025/atomic-router-react)
-- [**Forest**](https://github.com/sergeysova/atomic-router-forest)
-- [**Solid**](https://www.npmjs.com/package/atomic-router-solid)
+### Get view-library bindings: [**React**](https://github.com/kelin2025/atomic-router-react), [**Forest**](https://github.com/sergeysova/atomic-router-forest), [**Solid**](https://www.npmjs.com/package/atomic-router-solid)
 
 ## Installation
 
