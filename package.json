@@ -16,7 +16,10 @@
     "test": "jest -i",
     "test:watch": "jest --watch -i",
     "build": "npm run test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs"
   },
   "peerDependencies": {
     "effector": "^22",
