@@ -1,3 +1,0 @@
-# Micro-frontends
-
-WIP

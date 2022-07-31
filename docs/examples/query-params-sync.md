@@ -1,3 +1,0 @@
-# Query Params Sync
-
-WIP

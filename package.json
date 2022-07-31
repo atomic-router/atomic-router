@@ -16,10 +16,7 @@
     "test": "jest -i",
     "test:watch": "jest --watch -i",
     "build": "npm run test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
-    "prepare": "npm run build",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:serve": "vitepress serve docs"
+    "prepare": "npm run build"
   },
   "peerDependencies": {
     "effector": "^22",
@@ -35,9 +32,7 @@
     "ts-jest": "^28.0.1",
     "tslib": "^2.4.0",
     "tsup": "^5.12.7",
-    "typescript": "^4.6.3",
-    "vitepress": "^1.0.0-alpha.4",
-    "vue": "^3.2.37"
+    "typescript": "^4.6.3"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0"
