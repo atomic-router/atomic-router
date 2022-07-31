@@ -8,9 +8,9 @@ npm install effector atomic-router history
 
 ## View-library bindings
 
-- [**React**](/views/react)
-- [**Forest**](/views/forest)
-- [**Solid**](/views/solid)
+- [**React**](https://github.com/kelin2025/atomic-router-react)
+- [**Forest**](https://github.com/sergeysova/atomic-router-forest)
+- [**Solid**](https://github.com/Drevoed/atomic-router-solid)
 
 ## Initialization
 
@@ -18,12 +18,12 @@ Create your routes wherever you want:
 
 ```ts
 // @/pages/home
-import { createRoute } from "atomic-router";
+import { createRoute } from 'atomic-router';
 
 export const homeRoute = createRoute();
 
 // @/pages/posts
-import { createRoute } from "atomic-router";
+import { createRoute } from 'atomic-router';
 
 export const postsRoute = createRoute<{ postId: string }>();
 ```
@@ -32,16 +32,16 @@ And then create a router
 
 ```ts
 // @/app/routing
-import { createHistoryRouter } from "atomic-router";
-import { createBrowserHistory, createMemoryHistory } from "history";
+import { createHistoryRouter } from 'atomic-router';
+import { createBrowserHistory, createMemoryHistory } from 'history';
 
-import { homeRoute } from "@/pages/home";
-import { postsRoute } from "@/pages/posts";
+import { homeRoute } from '@/pages/home';
+import { postsRoute } from '@/pages/posts';
 
 // 1. Define routes
 const routes = [
-  { path: "/", route: homeRoute },
-  { path: "/posts", route: postsRoute },
+  { path: '/', route: homeRoute },
+  { path: '/posts', route: postsRoute },
 ];
 
 // 2. Create router
