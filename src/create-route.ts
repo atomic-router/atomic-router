@@ -23,7 +23,7 @@ export const createRoute = <Params extends RouteParams = {}>(
   params: createRouteParams = {}
 ) => {
   const navigateFx = createEffect(
-    async ({ params, query }: RouteParamsAndQuery<Params>) => {
+    ({ params, query }: RouteParamsAndQuery<Params>) => {
       return {
         params: params || {},
         query: query || {},
