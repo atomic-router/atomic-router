@@ -16,6 +16,5 @@ jobs:
       - name: Install deps
         run: yarn
 
-      - uses: andresz1/size-limit-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run size limit
+        run: yarn size-limit
