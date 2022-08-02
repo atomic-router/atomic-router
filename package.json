@@ -15,20 +15,25 @@
     "start": "tsup src/index.ts --watch",
     "test": "jest -i",
     "test:watch": "jest --watch -i",
-    "build": "npm run test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
-    "prepare": "npm run build"
+    "build": "yarn test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
+    "prepare": "yarn build",
+    "lint": "yarn prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
+    "format": "yarn prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
   },
   "peerDependencies": {
     "effector": "^22",
     "history": "^5.3.0"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.0.0",
     "@types/history": "^4.7.11",
     "@types/jest": "^27.5.0",
     "effector": "^22",
     "history": "^5.3.0",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
+    "prettier": "^2.7.1",
+    "size-limit": "^8.0.0",
     "ts-jest": "^28.0.1",
     "tslib": "^2.4.0",
     "tsup": "^5.12.7",
@@ -48,5 +53,16 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/kelin2025/atomic-router"
-  }
+  },
+  "size-limit": [
+    {
+      "path": "dist/esm/index.js",
+      "limit": "10 kB"
+    },
+    {
+      "path": "dist/index.js",
+      "limit": "10 kB"
+    }
+  ]
+
 }
