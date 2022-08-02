@@ -17,8 +17,8 @@
     "test:watch": "jest --watch -i",
     "build": "yarn test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
     "prepare": "yarn build",
-    "lint": "yarn prettier --check './{src,test}/**/*.{ts,tsx,js,jsx,md}'",
-    "format": "yarn prettier --write './{src,test}/**/*.{ts,tsx,js,jsx,md}'"
+    "lint": "yarn prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
+    "format": "yarn prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
   },
   "peerDependencies": {
     "effector": "^22",
