@@ -54,15 +54,15 @@ jobs:
           text: ${{ steps.version.outputs.tag }}
           regex: '-rc'
 
-      - name: Publish patronum@${{ steps.version.outputs.tag }} with NEXT tag
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} with NEXT tag
         if: ${{ steps.next.outputs.match != '' }}
         run: npm publish --tag next
 
-      - name: Publish patronum@${{ steps.version.outputs.tag }} with RC tag
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} with RC tag
         if: ${{ steps.rc.outputs.match != '' }}
         run: npm publish --tag rc
 
-      - name: Publish patronum@${{ steps.version.outputs.tag }} to latest
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} to latest
         if: ${{ steps.next.outputs.match == '' }}
         run: npm publish
 
