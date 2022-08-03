@@ -4,14 +4,15 @@ import { RouteInstance, RouteParams, RouteQuery } from './types';
 import {
   attach,
   createEffect,
-  guard,
-  sample,
-  createStore,
   createEvent,
-  scopeBind,
+  createStore,
+  guard,
   restore,
+  sample,
+  scopeBind,
 } from 'effector';
 import { paramsEqual } from './utils/equals';
+import { isRoute } from './utils/is-route';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -32,7 +33,7 @@ type HistoryPushParams = {
 };
 
 const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
-  pushParams => {
+  (pushParams) => {
     if (!pushParams.history) {
       throw new Error('[Routing] No history provided');
     }
@@ -48,13 +49,13 @@ const remapRouteObjects = (
   let next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
-      next.push(...routeObj.route.map(route => ({ ...routeObj, route })));
+      next.push(...routeObj.route.map((route) => ({ ...routeObj, route })));
     } else {
       // @ts-expect-error
       next.push(routeObj);
     }
   }
-  next = next.map(routeObj => ({
+  next = next.map((routeObj) => ({
     ...routeObj,
     path: `${basePath}${routeObj.path}`,
   }));
@@ -81,6 +82,7 @@ const remapRouteObjects = (
 export const createHistoryRouter = (params: {
   base?: string;
   routes: UnmappedRouteObject<any>[];
+  notFoundRoute?: RouteInstance<any>;
   hydrate?: boolean;
 }) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
@@ -182,7 +184,7 @@ export const createHistoryRouter = (params: {
       // @ts-expect-error
       const closedIdx = idx as number;
       if (
-        opened.some(obj => obj.route.route === closed[closedIdx].route.route)
+        opened.some((obj) => obj.route.route === closed[closedIdx].route.route)
       ) {
         // @ts-expect-error
         closed[closedIdx] = null;
@@ -201,7 +203,7 @@ export const createHistoryRouter = (params: {
   $query.on(recalculateFx.done, (_prev, { params: { query } }) => query);
 
   $activeRoutes.on(recalculateFx.doneData, (_prev, { opened }) =>
-    opened.map(recheckResult => recheckResult.route.route)
+    opened.map((recheckResult) => recheckResult.route.route)
   );
 
   sample({
@@ -242,7 +244,7 @@ export const createHistoryRouter = (params: {
 
     const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
       const result = recheckResults.find(
-        recheckResult => recheckResult.route.route === routeObj.route
+        (recheckResult) => recheckResult.route.route === routeObj.route
       );
       if (!result) {
         return;
@@ -256,7 +258,7 @@ export const createHistoryRouter = (params: {
     const recheckLifecycle = {
       opened: guard({
         clock: routesOpened.filterMap(containsCurrentRoute),
-        filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
+        filter: routeObj.route.$isOpened.map((isOpened) => !isOpened),
       }),
       updated: guard({
         clock: routesOpened.filterMap(containsCurrentRoute),
@@ -274,7 +276,7 @@ export const createHistoryRouter = (params: {
     // Trigger .updated() for already opened routes marked as "opened"
     const updated = guard({
       clock: recheckLifecycle.updated,
-      filter: $isOpenedManually.map(isOpenedManually => !isOpenedManually),
+      filter: $isOpenedManually.map((isOpenedManually) => !isOpenedManually),
     });
 
     sample({
@@ -289,14 +291,14 @@ export const createHistoryRouter = (params: {
           );
         },
       }),
-      fn: payload => payload!,
+      fn: (payload) => payload!,
       target: routeObj.route.updated,
     });
 
     // Trigger .opened() for the routes marked as "opened"
     guard({
       clock: recheckLifecycle.opened,
-      filter: $isOpenedManually.map(isOpenedManually => !isOpenedManually),
+      filter: $isOpenedManually.map((isOpenedManually) => !isOpenedManually),
       target: routeObj.route.opened,
     });
 
@@ -308,6 +310,42 @@ export const createHistoryRouter = (params: {
 
     // Reset $isOpenedManually
     $isOpenedManually.reset(sample({ clock: routesOpened }));
+  }
+
+  if (isRoute(params.notFoundRoute)) {
+    const notFoundRouteTriggered = sample({
+      clock: $activeRoutes,
+      source: params.notFoundRoute.$isOpened,
+      fn: (isOpened, activeRoutes) => ({
+        isOpened,
+        activeRoutesCount: activeRoutes.length,
+      }),
+    });
+
+    sample({
+      clock: notFoundRouteTriggered,
+      source: { query: $query },
+      filter: (_, { activeRoutesCount, isOpened }) =>
+        !isOpened && activeRoutesCount === 0,
+      fn: ({ query }) => ({ query, params: {} }),
+      target: params.notFoundRoute.opened,
+    });
+
+    sample({
+      clock: notFoundRouteTriggered,
+      source: { query: $query },
+      filter: (_, { activeRoutesCount, isOpened }) =>
+        isOpened && activeRoutesCount === 0,
+      fn: ({ query }) => ({ query, params: {} }),
+      target: params.notFoundRoute.updated,
+    });
+
+    sample({
+      clock: notFoundRouteTriggered,
+      filter: ({ activeRoutesCount, isOpened }) =>
+        isOpened && activeRoutesCount !== 0,
+      target: params.notFoundRoute.closed,
+    });
   }
 
   // Takes current path from history and triggers recalculate

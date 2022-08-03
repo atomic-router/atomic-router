@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.0.0-this-version-will-be-set-from-ci",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/esm/index.js",
@@ -15,19 +15,24 @@
     "start": "tsup src/index.ts --watch",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "build": "npm run test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
-    "prepare": "npm run build"
+    "build": "yarn test && tsup src/index.ts --minify --dts --format esm,cjs --legacy-output",
+    "prepare": "yarn build",
+    "lint": "yarn prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
+    "format": "yarn prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
   },
   "peerDependencies": {
     "effector": "^22",
     "history": "^5.3.0"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.0.0",
     "@types/history": "^4.7.11",
     "@vitest/ui": "~0.20.2",
     "effector": "^22",
     "history": "^5.3.0",
     "jsdom": "~20.0.0",
+    "prettier": "^2.7.1",
+    "size-limit": "^8.0.0",
     "tslib": "^2.4.0",
     "tsup": "^5.12.7",
     "typescript": "^4.6.3",
@@ -47,5 +52,16 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/kelin2025/atomic-router"
-  }
+  },
+  "size-limit": [
+    {
+      "path": "dist/esm/index.js",
+      "limit": "10 kB"
+    },
+    {
+      "path": "dist/index.js",
+      "limit": "10 kB"
+    }
+  ]
+
 }

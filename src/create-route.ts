@@ -61,7 +61,7 @@ export const createRoute = <Params extends RouteParams = {}>(
 
   split({
     source: navigateFx.doneData,
-    match: $isOpened.map(isOpened => (isOpened ? 'updated' : 'opened')),
+    match: $isOpened.map((isOpened) => (isOpened ? 'updated' : 'opened')),
     cases: {
       opened,
       updated,
@@ -79,7 +79,7 @@ export const createRoute = <Params extends RouteParams = {}>(
       // @ts-expect-error
       source: sample({ clock: filter }),
       // @ts-expect-error
-      match: filter => (filter ? 'true' : 'false'),
+      match: (filter) => (filter ? 'true' : 'false'),
       cases: {
         true: opened,
         false: closed,
