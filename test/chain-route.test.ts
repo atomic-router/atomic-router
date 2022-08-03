@@ -25,11 +25,9 @@ describe('chainRoute', () => {
 
   it('attach-like config in beforeOpen', () => {
     const route = createRoute<{ x: string }>();
-    const cb = vi.fn(
-      (payload: { param: string; queryParam: string }) => {
-        return payload;
-      }
-    );
+    const cb = vi.fn((payload: { param: string; queryParam: string }) => {
+      return payload;
+    });
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
       route,
