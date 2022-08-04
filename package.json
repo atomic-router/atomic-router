@@ -13,7 +13,6 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsup src/index.ts --watch",
     "test": "jest -i",
     "test:watch": "jest --watch -i",
     "build": "rollup -c",
@@ -51,7 +50,6 @@
     "size-limit": "^8.0.0",
     "ts-jest": "^28.0.1",
     "tslib": "^2.4.0",
-    "tsup": "^5.12.7",
     "typescript": "^4.6.3"
   },
   "dependencies": {
