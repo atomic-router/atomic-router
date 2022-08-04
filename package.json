@@ -71,11 +71,11 @@
   },
   "size-limit": [
     {
-      "path": "dist/esm/index.js",
+      "path": "dist/atomic-router.esm.js",
       "limit": "10 kB"
     },
     {
-      "path": "dist/index.js",
+      "path": "dist/atomic-router.cjs.js",
       "limit": "10 kB"
     }
   ]
