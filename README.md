@@ -43,7 +43,7 @@ And then create a router
 import { createHistoryRouter } from 'atomic-router';
 import { createBrowserHistory, createMemoryHistory } from 'history';
 import { homeRoute } from '@/pages/home';
-import { postsRoute } from '@/pages/home';
+import { postsRoute } from '@/pages/posts';
 
 const routes = [
   { path: '/', route: homeRoute },
