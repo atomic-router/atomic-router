@@ -1,0 +1,68 @@
+name: Publish CI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-to-npm:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build package
+        run: yarn build
+
+      - name: Extract version from release
+        id: version
+        uses: olegtarasov/get-tag@v2.1
+        with:
+          tagRegex: 'v(.*)'
+
+      - name: Set version from release
+        uses: reedyuk/npm-version@1.1.1
+        with:
+          version: ${{ steps.version.outputs.tag }}
+          git-tag-version: 'false'
+
+      - name: Create NPM config
+        run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Check for NEXT tag
+        id: next
+        uses: actions-ecosystem/action-regex-match@v2
+        with:
+          text: ${{ steps.version.outputs.tag }}
+          regex: '-next'
+
+      - name: Check for RC tag
+        id: rc
+        uses: actions-ecosystem/action-regex-match@v2
+        with:
+          text: ${{ steps.version.outputs.tag }}
+          regex: '-rc'
+
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} with NEXT tag
+        if: ${{ steps.next.outputs.match != '' }}
+        run: npm publish --tag next
+
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} with RC tag
+        if: ${{ steps.rc.outputs.match != '' }}
+        run: npm publish --tag rc
+
+      - name: Publish atomic-router@${{ steps.version.outputs.tag }} to latest
+        if: ${{ steps.next.outputs.match == '' }}
+        run: npm publish
+

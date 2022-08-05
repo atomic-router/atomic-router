@@ -11,7 +11,10 @@ Simple routing implementation that provides abstraction layer instead of inline 
 
 ### Read the docs: [atomic-router.github.io](https://atomic-router.github.io)
 
-### Get view-library bindings: [**React**](https://github.com/kelin2025/atomic-router-react), [**Forest**](https://github.com/sergeysova/atomic-router-forest), [**Solid**](https://www.npmjs.com/package/atomic-router-solid)
+### Get view-library bindings
+- ⚛️ [**React**](https://github.com/atomic-router/react)
+- 🍃 [**Forest**](https://github.com/atomic-router/forest)
+- [**Solid**](https://github.com/atomic-router/solid)
 
 ## Installation
 
@@ -40,7 +43,7 @@ And then create a router
 import { createHistoryRouter } from 'atomic-router';
 import { createBrowserHistory, createMemoryHistory } from 'history';
 import { homeRoute } from '@/pages/home';
-import { postsRoute } from '@/pages/home';
+import { postsRoute } from '@/pages/posts';
 
 const routes = [
   { path: '/', route: homeRoute },
