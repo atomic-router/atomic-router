@@ -1,3 +1,4 @@
+import { History } from 'history';
 import { Effect, Event, Store } from 'effector';
 
 export type RouteParams = Record<string, any>;
@@ -22,6 +23,26 @@ export type RouteInstance<Params extends RouteParams> = {
   open: Effect<Params, RouteParamsAndQuery<Params>>;
   kind: typeof Kind.ROUTE;
 };
+
+export type RouteObject<Params extends RouteParams> = {
+  route: RouteInstance<Params>;
+  path: string;
+};
+
+export type UnmappedRouteObject<Params extends RouteParams> = {
+  route: RouteInstance<Params> | RouteInstance<Params>[];
+  path: string;
+};
+
+export type HistoryPushParams = {
+  history: History;
+  path: string;
+  params: RouteParams;
+  query: RouteQuery;
+  method: 'replace' | 'push';
+};
+
+export type HistoryBackForwardParams = History;
 
 // @ts-expect-error
 export type PathCreator<Params extends RouteParams> = string;

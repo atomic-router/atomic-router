@@ -71,46 +71,45 @@ type chainRouteParams<Params, FX extends Effect<any, any, any>> =
 const normalizeChainRouteParams = <Params, FX extends Effect<any, any, any>>(
   params: chainRouteParams<Params, FX>
 ): ChainRouteParamsNormalized<Params> => {
+  // @ts-expect-error
+  const resultParams: ChainRouteParamsNormalized<Params> = {};
   if (isRoute(params)) {
-    return {
+    Object.assign(resultParams, {
       route: params,
       chainedRoute: createRoute<Params>(),
       beforeOpen: createEvent(),
       openOn: merge([params.opened, params.closed]),
       cancelOn: merge([createEvent()]),
-    };
+    });
+    return resultParams;
   }
-  const effectParams = { ...params } as ChainRouteParamsWithEffect<Params>;
-  if (!is.unit(effectParams.beforeOpen)) {
-    effectParams.beforeOpen = attach(effectParams.beforeOpen);
-  }
-  if (is.effect(effectParams.beforeOpen)) {
-    return {
-      route: effectParams.route,
-      chainedRoute: effectParams.chainedRoute || createRoute<Params>(),
-      beforeOpen: effectParams.beforeOpen,
+  const effectParams = params as ChainRouteParamsWithEffect<Params>;
+  Object.assign(resultParams, {
+    route: effectParams.route,
+    chainedRoute: effectParams.chainedRoute || createRoute<Params>(),
+    beforeOpen: is.unit(effectParams.beforeOpen)
+      ? effectParams.beforeOpen
+      : attach(effectParams.beforeOpen),
+  });
+  if (is.effect(resultParams.beforeOpen)) {
+    Object.assign(resultParams, {
       openOn:
-        'openOn' in effectParams
-          ? // @ts-expect-error
-            effectParams.openOn
-          : effectParams.beforeOpen.doneData,
+        // @ts-expect-error
+        effectParams.openOn || resultParams.beforeOpen.doneData,
       cancelOn:
-        'cancelOn' in effectParams
-          ? // @ts-expect-error
-            effectParams.cancelOn
-          : effectParams.beforeOpen.failData,
-    };
+        // @ts-expect-error
+        effectParams.cancelOn || resultParams.beforeOpen.failData,
+    });
+    return resultParams;
   }
   const advancedParams = params as ChainRouteParamsAdvanced<Params>;
-  return {
-    route: advancedParams.route,
-    chainedRoute: advancedParams.chainedRoute || createRoute<Params>(),
-    beforeOpen: advancedParams.beforeOpen,
+  Object.assign(resultParams, {
     openOn: sample({ clock: advancedParams.openOn as Unit<any> }),
     cancelOn: sample({
       clock: (advancedParams.cancelOn as Unit<any>) || createEvent(),
     }),
-  };
+  });
+  return resultParams;
 };
 
 function chainRoute<Params>(
@@ -135,7 +134,7 @@ function chainRoute<Params, FX extends Effect<any, any, any>>(
  * @param {RouteInstance<any>} params.route - Route to listen
  * @param {RouteInstance<any>} [params.chainedRoute]  - Route to be created
  * @param {Clock<any>} params.beforeOpen - Will be triggered when `params.route` open
- * @param {Clock<any>} params.enterOn - Will open `chainedRoute` if `params.route` is still opened
+ * @param {Clock<any>} params.openOn - Will open `chainedRoute` if `params.route` is still opened
  * @param {Clock<any>} params.cancelOn - Cancels chain
  * @returns {RouteInstance<any>} `chainedRoute`
  */
