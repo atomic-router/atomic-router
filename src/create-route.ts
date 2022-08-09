@@ -45,11 +45,9 @@ export const createRoute = <Params extends RouteParams = {}>(
 
   const opened = createEvent<RouteParamsAndQuery<Params>>();
   const updated = createEvent<RouteParamsAndQuery<Params>>();
-  /** @deprecated Will be removed in 0.6.0. Use `route.closed` instead */
-  const left = createEvent<void>();
   const closed = createEvent<void>();
 
-  $isOpened.on(opened, () => true).on(left, () => false);
+  $isOpened.on(opened, () => true).on(closed, () => false);
 
   $params
     .on(opened, (_, { params }) => params)
@@ -68,24 +66,19 @@ export const createRoute = <Params extends RouteParams = {}>(
     },
   });
 
-  sample({
-    clock: closed,
-    target: left,
-  });
-
-  if (params.filter) {
-    const filter = params.filter;
-    split({
-      // @ts-expect-error
-      source: sample({ clock: filter }),
-      // @ts-expect-error
-      match: (filter) => (filter ? 'true' : 'false'),
-      cases: {
-        true: opened,
-        false: closed,
-      },
-    });
-  }
+  // if (params.filter) {
+  //   const filter = params.filter;
+  //   split({
+  //     // @ts-expect-error
+  //     source: sample({ clock: filter }),
+  //     // @ts-expect-error
+  //     match: (filter) => (filter ? 'true' : 'false'),
+  //     cases: {
+  //       true: opened,
+  //       false: closed,
+  //     },
+  //   });
+  // }
 
   const instance: RouteInstance<Params> = {
     $isOpened,
@@ -94,7 +87,6 @@ export const createRoute = <Params extends RouteParams = {}>(
     opened,
     updated,
     closed,
-    left,
     navigate: navigateFx,
     open: openFx,
     kind: Kind.ROUTE,
