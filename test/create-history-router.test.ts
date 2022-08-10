@@ -3,7 +3,7 @@
  */
 import { allSettled, createEvent, fork } from 'effector';
 import { createMemoryHistory } from 'history';
-import { createHistoryRouter } from '../src/new-create-history-router';
+import { createHistoryRouter } from '../src/methods/new-create-history-router';
 import { createRoute, createRouterControls } from '../src';
 
 const foo = createRoute();

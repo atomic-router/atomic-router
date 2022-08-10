@@ -15,16 +15,16 @@ import {
   HistoryPushParams,
   RouteObject,
   RouteParams,
-} from './types';
-import { remapRouteObjects } from './utils/remap-route-objects';
-import { paramsEqual } from './utils/equals';
-import { buildPath, matchPath } from './utils/build-path';
-import { isRoute } from './utils/is-route';
+} from '../types';
+import { remapRouteObjects } from '../utils/remap-route-objects';
+import { paramsEqual } from '../utils/equals';
+import { buildPath, matchPath } from '../utils/build-path';
+import { isRoute } from './is-route';
 import {
   historyPushFx,
   historyBackFx,
   historyForwardFx,
-} from './utils/history-effects';
+} from '../utils/history-effects';
 
 export const createHistoryRouter = ({
   base,

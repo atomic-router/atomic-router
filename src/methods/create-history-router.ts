@@ -1,6 +1,6 @@
-import { buildPath, matchPath } from './utils/build-path';
+import { buildPath, matchPath } from '../utils/build-path';
 import { History } from 'history';
-import { RouteInstance, RouteParams, RouteQuery } from './types';
+import { RouteInstance, RouteParams, RouteQuery } from '../types';
 import {
   attach,
   createEffect,
@@ -11,8 +11,8 @@ import {
   sample,
   scopeBind,
 } from 'effector';
-import { paramsEqual } from './utils/equals';
-import { isRoute } from './utils/is-route';
+import { paramsEqual } from '../utils/equals';
+import { isRoute } from './is-route';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;

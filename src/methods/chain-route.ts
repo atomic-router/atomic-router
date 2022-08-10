@@ -15,7 +15,7 @@ import {
   attach,
 } from 'effector';
 
-import { createRoute } from '../create-route';
+import { createRoute } from './create-route';
 import { RouteInstance, RouteParamsAndQuery, RouteQuery } from '../types';
 
 import { isRoute } from './is-route';

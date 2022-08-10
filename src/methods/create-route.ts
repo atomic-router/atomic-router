@@ -12,7 +12,7 @@ import {
   RouteQuery,
   RouteInstance,
   Kind,
-} from './types';
+} from '../types';
 
 type createRouteParams = {
   filter?: Store<boolean>;
