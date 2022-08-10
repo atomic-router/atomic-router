@@ -1,5 +1,6 @@
 export * from './create-route';
-export * from './create-history-router';
+export * from './new-create-history-router';
+export * from './create-router-controls';
 export * from './utils/build-path';
 export * from './utils/is-route';
 export * from './utils/redirect';
