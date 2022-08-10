@@ -3,7 +3,6 @@ import {
   createEffect,
   createEvent,
   createStore,
-  sample,
   split,
   Store,
 } from 'effector';
