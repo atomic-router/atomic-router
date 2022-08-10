@@ -1,11 +1,5 @@
-import { createEvent, createStore } from 'effector';
+import { allSettled, createEvent, createStore, fork } from 'effector';
 import { createRoute, redirect } from '../src';
-
-const sleep = (t: number) => {
-  return new Promise((r) => {
-    setTimeout(r, t);
-  });
-};
 
 describe('redirect', () => {
   it('Opens `route` on `clock` trigger', async () => {
@@ -17,13 +11,13 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
 
-    await sleep(0);
+    await allSettled(clock, { scope });
 
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({});
-    expect(route.$query.getState()).toEqual({});
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({});
+    expect(scope.getState(route.$query)).toEqual({});
   });
 
   // TODO: Would be cool to make it default behavior
@@ -41,16 +35,18 @@ describe('redirect', () => {
   //     route,
   //   });
 
-  //   clock({
-  //     params: { foo: 'bar' },
-  //     query: { baz: 'test' },
+  //   const scope = fork();
+  //   await allSettled(clock, {
+  //     scope,
+  //     params: {
+  //       params: { foo: 'bar' },
+  //       query: { baz: 'test' },
+  //     },
   //   });
 
-  //   await sleep(0);
-
-  //   expect(route.$isOpened.getState()).toBeTruthy();
-  //   expect(route.$params.getState()).toEqual({ foo: 'bar' });
-  //   expect(route.$query.getState()).toEqual({ baz: 'test' });
+  //   expect(scope.getState(route.$isOpened)).toBeTruthy();
+  //   expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+  //   expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
   // });
 
   it('Object-like `params` & `query`', async () => {
@@ -64,13 +60,12 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
+    await allSettled(clock, { scope });
 
-    await sleep(0);
-
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
   });
 
   it('Store-like `params` & `query`', async () => {
@@ -84,13 +79,12 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
+    await allSettled(clock, { scope });
 
-    await sleep(0);
-
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
   });
 
   it('Function-like `params` & `query`', async () => {
@@ -104,12 +98,13 @@ describe('redirect', () => {
       route,
     });
 
-    clock('bar');
+    const scope = fork();
+    await allSettled(clock, { scope, params: 'bar' });
 
-    await sleep(0);
-
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'bar-test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({
+      baz: 'bar-test',
+    });
   });
 });

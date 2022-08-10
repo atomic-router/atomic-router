@@ -1,4 +1,4 @@
-import { createEffect, createEvent } from 'effector';
+import { allSettled, createEffect, createEvent, fork } from 'effector';
 import { createRoute, chainRoute } from '../src';
 
 const sleep = (t: number) => {
@@ -11,9 +11,12 @@ describe('chainRoute', () => {
   it('Creates a chained route', async () => {
     const route = createRoute();
     const chainedRoute = chainRoute(route);
-    await route.open({});
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeTruthy();
+    const scope = fork();
+    await allSettled(route.open, {
+      scope,
+      params: {},
+    });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
   it('Effect in beforeOpen', async () => {
@@ -24,11 +27,15 @@ describe('chainRoute', () => {
       route,
       beforeOpen: fx,
     });
-    await route.open({});
+    const scope = fork();
+    const promise = allSettled(route.open, {
+      scope,
+      params: {},
+    });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+    await promise;
     expect(cb).toBeCalledTimes(1);
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeTruthy();
+    expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
   it('attach-like config in beforeOpen', async () => {
@@ -50,15 +57,19 @@ describe('chainRoute', () => {
         }),
       },
     });
-    await route.navigate({
-      params: { x: 'param' },
-      query: { foo: 'query' },
+    const scope = fork();
+    const promise = allSettled(route.navigate, {
+      scope,
+      params: {
+        params: { x: 'param' },
+        query: { foo: 'query' },
+      },
     });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+    await promise;
     expect(cb).toBeCalledTimes(1);
     expect(cb).toBeCalledWith({ param: 'param', queryParam: 'query' });
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeTruthy();
+    expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
   it('openOn parameter', async () => {
@@ -74,19 +85,25 @@ describe('chainRoute', () => {
       openOn,
       cancelOn,
     });
-    await route.navigate({
-      params: { x: 'param' },
-      query: { foo: 'query' },
+    const scope = fork();
+    const promise = allSettled(route.navigate, {
+      scope,
+      params: {
+        params: { x: 'param' },
+        query: { foo: 'query' },
+      },
     });
+    await promise;
     expect(beforeOpenCb).toBeCalledTimes(1);
     expect(beforeOpenCb).toBeCalledWith({
       params: { x: 'param' },
       query: { foo: 'query' },
     });
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    openOn();
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeTruthy();
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+    await allSettled(openOn, {
+      scope,
+    });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
   it('cancelOn parameter', async () => {
@@ -102,21 +119,23 @@ describe('chainRoute', () => {
       openOn,
       cancelOn,
     });
-    await route.navigate({
-      params: { x: 'param' },
-      query: { foo: 'query' },
+    const scope = fork();
+    await allSettled(route.navigate, {
+      scope,
+      params: {
+        params: { x: 'param' },
+        query: { foo: 'query' },
+      },
     });
     expect(beforeOpenCb).toBeCalledTimes(1);
     expect(beforeOpenCb).toBeCalledWith({
       params: { x: 'param' },
       query: { foo: 'query' },
     });
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    cancelOn();
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    openOn();
-    await sleep(100);
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+    await allSettled(cancelOn, { scope });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+    await allSettled(openOn, { scope });
+    expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
   });
 });
