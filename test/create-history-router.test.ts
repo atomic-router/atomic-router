@@ -1,9 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { allSettled, fork } from 'effector';
+import { allSettled, createEvent, fork } from 'effector';
 import { createMemoryHistory } from 'history';
-import { createHistoryRouter, createRoute } from '../src';
+import { createHistoryRouter } from '../src/new-create-history-router';
+import { createRoute, createRouterControls } from '../src';
 
 const sleep = (t: number) => {
   return new Promise((r) => {
@@ -18,6 +19,8 @@ const firstClone = createRoute();
 const withParams = createRoute<{ postId: string }>();
 const hashed = createRoute<{ token: string }>();
 
+const controls = createRouterControls();
+
 const router = createHistoryRouter({
   routes: [
     { route: foo, path: '/foo' },
@@ -27,6 +30,7 @@ const router = createHistoryRouter({
     { route: withParams, path: '/posts/:postId' },
     { route: hashed, path: '/test/#/swap/:token' },
   ],
+  controls,
 });
 
 describe('Initialization', () => {
@@ -70,6 +74,12 @@ describe('Initialization', () => {
     });
     expect(scope.getState(foo.$query)).toEqual({ bar: 'baz' });
     expect(scope.getState(bar.$query)).toEqual({});
+    expect(scope.getState(first.$query)).toEqual({});
+    expect(scope.getState(firstClone.$query)).toEqual({});
+    expect(scope.getState(withParams.$query)).toEqual({});
+    history.push('/bar?bar=baz2');
+    expect(scope.getState(foo.$query)).toEqual({ bar: 'baz' });
+    expect(scope.getState(bar.$query)).toEqual({ bar: 'baz2' });
     expect(scope.getState(first.$query)).toEqual({});
     expect(scope.getState(firstClone.$query)).toEqual({});
     expect(scope.getState(withParams.$query)).toEqual({});
@@ -144,6 +154,75 @@ describe('Lifecycle', () => {
     history.push('/foo');
     await sleep(0);
     expect(closed).toBeCalledTimes(1);
+  });
+});
+
+describe('History', () => {
+  it('Open previous route on .back() trigger', async () => {
+    const history = createMemoryHistory();
+    history.push('/foo');
+    history.push('/bar');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(scope.getState(bar.$isOpened)).toBeTruthy();
+    await allSettled(router.back, { scope });
+    expect(scope.getState(bar.$isOpened)).toBeFalsy();
+    expect(scope.getState(foo.$isOpened)).toBeTruthy();
+  });
+
+  it('Open previous route on .forward() trigger', async () => {
+    const history = createMemoryHistory();
+    history.push('/foo');
+    history.push('/bar');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(scope.getState(bar.$isOpened)).toBeTruthy();
+    await allSettled(router.back, { scope });
+    expect(scope.getState(bar.$isOpened)).toBeFalsy();
+    expect(scope.getState(foo.$isOpened)).toBeTruthy();
+  });
+});
+
+describe('Query', () => {
+  it('Updates .$query on path change', async () => {
+    const history = createMemoryHistory();
+    history.push('/foo?param=test');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    await sleep(0);
+    expect(scope.getState(router.$query)).toEqual({
+      param: 'test',
+    });
+  });
+
+  it('Updates path on $query change', async () => {
+    const history = createMemoryHistory();
+    history.push('/foo?param=test');
+    const changed = createEvent<any>();
+    router.$query.on(changed, (prev, next) => next);
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    await allSettled(changed, {
+      scope,
+      params: { bar: 'baz' },
+    });
+    await sleep(0);
+    expect(history.location.search).toBe('?bar=baz');
+    expect(scope.getState(router.$query)).toEqual({
+      bar: 'baz',
+    });
   });
 });
 
