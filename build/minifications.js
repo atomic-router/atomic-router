@@ -15,7 +15,7 @@ export const minifyConfig = ({ beautify, inline = true }) => ({
     arrows: true,
     arguments: true,
     booleans: true,
-    booleans_as_integers: true,
+    booleans_as_integers: false,
     collapse_vars: true,
     comparisons: true,
     computed_props: true,
