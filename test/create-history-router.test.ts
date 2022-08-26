@@ -277,11 +277,11 @@ describe('Router with params.base', () => {
       const scope = fork();
 
       const history = createMemoryHistory({
-        initialEntries: ['/foo', '/bar']
+        initialEntries: ['/foo', '/bar'],
       });
 
       const { index } = history;
-      
+
       await allSettled(router.setHistory, {
         scope,
         params: history,

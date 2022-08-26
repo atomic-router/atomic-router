@@ -31,7 +31,7 @@ export const createRoute = <Params extends RouteParams = {}>(
       return {
         params: params || {},
         query: query || {},
-        replace: replace ?? false
+        replace: replace ?? false,
       } as RouteParamsAndQuery<Params>;
     }
   );
@@ -41,7 +41,7 @@ export const createRoute = <Params extends RouteParams = {}>(
     mapParams: (params: Params) => ({
       params: params || ({} as Params),
       query: {} as RouteQuery,
-      replace: false
+      replace: false,
     }),
   });
 
