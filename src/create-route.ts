@@ -19,14 +19,19 @@ type createRouteParams = {
   filter?: Store<boolean>;
 };
 
+type NavigateParams<Params> = RouteParamsAndQuery<Params> & {
+  replace?: boolean;
+};
+
 export const createRoute = <Params extends RouteParams = {}>(
   params: createRouteParams = {}
 ) => {
   const navigateFx = createEffect(
-    async ({ params, query }: RouteParamsAndQuery<Params>) => {
+    async ({ params, query, replace }: NavigateParams<Params>) => {
       return {
         params: params || {},
         query: query || {},
+        replace: replace ?? false
       } as RouteParamsAndQuery<Params>;
     }
   );
@@ -36,6 +41,7 @@ export const createRoute = <Params extends RouteParams = {}>(
     mapParams: (params: Params) => ({
       params: params || ({} as Params),
       query: {} as RouteQuery,
+      replace: false
     }),
   });
 
