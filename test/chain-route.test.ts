@@ -75,11 +75,13 @@ describe('chainRoute', () => {
       cancelOn,
     });
     await route.navigate({
+      replace: false,
       params: { x: 'param' },
       query: { foo: 'query' },
     });
     expect(beforeOpenCb).toBeCalledTimes(1);
     expect(beforeOpenCb).toBeCalledWith({
+      replace: false,
       params: { x: 'param' },
       query: { foo: 'query' },
     });
@@ -108,6 +110,7 @@ describe('chainRoute', () => {
     });
     expect(beforeOpenCb).toBeCalledTimes(1);
     expect(beforeOpenCb).toBeCalledWith({
+      replace: false,
       params: { x: 'param' },
       query: { foo: 'query' },
     });

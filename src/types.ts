@@ -18,7 +18,10 @@ export type RouteInstance<Params extends RouteParams> = {
   closed: Event<void>;
   /** @deprecated Will be removed in 0.6.0. Use `route.closed` instead */
   left: Event<void>;
-  navigate: Effect<RouteParamsAndQuery<Params>, RouteParamsAndQuery<Params>>;
+  navigate: Effect<
+    RouteParamsAndQuery<Params> & { replace?: boolean },
+    RouteParamsAndQuery<Params>
+  >;
   open: Effect<Params, RouteParamsAndQuery<Params>>;
   kind: typeof Kind.ROUTE;
 };

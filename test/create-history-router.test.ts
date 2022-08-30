@@ -307,6 +307,36 @@ describe('Router with params.base', () => {
     });
   });
 
+  describe('Navigate', () => {
+    it('Should replace history if replace option passed', async () => {
+      const scope = fork();
+
+      const history = createMemoryHistory({
+        initialEntries: ['/foo', '/bar'],
+      });
+
+      const { index } = history;
+
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+
+      await allSettled(first.navigate, {
+        scope,
+        params: {
+          query: {},
+          params: {},
+          replace: true,
+        },
+      });
+
+      expect(history.index).toBe(index);
+
+      expect(history.location.pathname).toBe('/first');
+    });
+  });
+
   // NOTE: Not needed feature, but would be cool to add in a future
   // describe('URL (e.g. https://foobar.com)', () => {
   //   it('Sets correct route', async () => {

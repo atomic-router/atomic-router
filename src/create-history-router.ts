@@ -91,6 +91,7 @@ export const createHistoryRouter = (params: {
     route: RouteObject<Params>;
     params: Params;
     query: RouteQuery;
+    replace: boolean;
   };
   type RecheckResult<Params extends RouteParams> = {
     route: RouteObject<Params>;
@@ -135,7 +136,7 @@ export const createHistoryRouter = (params: {
 
   // Triggered whenever some route.navigate.doneData is triggered
   const openedFx = createEffect<EnterParams<any>, PushParams>(
-    ({ route, params, query }) => {
+    ({ route, params, query, replace }) => {
       const path = buildPath({
         pathCreator: route.path,
         params,
@@ -146,7 +147,7 @@ export const createHistoryRouter = (params: {
         path,
         params,
         query,
-        method: 'push',
+        method: replace ? 'replace' : 'push',
       };
     }
   );
@@ -238,10 +239,11 @@ export const createHistoryRouter = (params: {
 
     sample({
       clock: navigatedManually,
-      fn: ({ result: { params, query } }) => ({
+      fn: ({ params: { replace }, result: { params, query } }) => ({
         route: routeObj,
         params,
         query,
+        replace: replace ?? false,
       }),
       target: openedFx,
     });
