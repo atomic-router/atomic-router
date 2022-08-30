@@ -1201,6 +1201,14 @@
   dependencies:
     "@types/node" "*"
 
+"@vitest/coverage-c8@^0.22.1":
+  version "0.22.1"
+  resolved "https://registry.yarnpkg.com/@vitest/coverage-c8/-/coverage-c8-0.22.1.tgz#d91b3487caca570a815899943c1939fe421fc114"
+  integrity sha512-KOOYpO7EGpaF+nD8GD+Y05D0JtZp12NUu6DdLXvBPqSOPo2HkZ7KNBtfR0rb6gOy3NLtGiWTYTzCwhajgb2HlA==
+  dependencies:
+    c8 "^7.12.0"
+    vitest "0.22.1"
+
 "@vitest/ui@^0.22.1":
   version "0.22.1"
   resolved "https://registry.yarnpkg.com/@vitest/ui/-/ui-0.22.1.tgz#549fe2d156bf91824c61cde74bd835c81c4a7996"
@@ -3052,7 +3060,7 @@ v8-to-istanbul@^9.0.0:
   optionalDependencies:
     fsevents "~2.3.2"
 
-vitest@^0.22.1:
+vitest@0.22.1, vitest@^0.22.1:
   version "0.22.1"
   resolved "https://registry.yarnpkg.com/vitest/-/vitest-0.22.1.tgz#3122e6024bf782ee9aca53034017af7adb009c32"
   integrity sha512-+x28YTnSLth4KbXg7MCzoDAzPJlJex7YgiZbUh6YLp0/4PqVZ7q7/zyfdL0OaPtKTpNiQFPpMC8Y2MSzk8F7dw==
