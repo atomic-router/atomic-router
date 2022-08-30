@@ -4,7 +4,7 @@
 import { allSettled, fork } from 'effector';
 import { createMemoryHistory } from 'history';
 import { createHistoryRouter, createRoute } from '../src';
-import queryString from "query-string";
+import queryString from 'query-string';
 
 const sleep = (t: number) => {
   return new Promise((r) => {
@@ -176,9 +176,17 @@ describe('Other checks', () => {
         { route: hashed, path: '/test/#/swap/:token' },
       ],
       serialize: {
-        read: (query) => queryString.parse(query, { arrayFormat: 'separator', arrayFormatSeparator: '|' }),
-        write: (params) => queryString.stringify(params, { arrayFormat: 'separator', arrayFormatSeparator: '|' })
-      }
+        read: (query) =>
+          queryString.parse(query, {
+            arrayFormat: 'separator',
+            arrayFormatSeparator: '|',
+          }),
+        write: (params) =>
+          queryString.stringify(params, {
+            arrayFormat: 'separator',
+            arrayFormatSeparator: '|',
+          }),
+      },
     });
     const updated = jest.fn();
     withParams.updated.watch(updated);
@@ -195,7 +203,7 @@ describe('Other checks', () => {
     expect(updated).toBeCalledTimes(1);
     expect(updated).toBeCalledWith({
       params: { postId: 'bar' },
-      query: { baz: ['1234','4321'] },
+      query: { baz: ['1234', '4321'] },
     });
   });
 

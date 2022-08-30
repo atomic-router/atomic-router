@@ -1,6 +1,11 @@
 import { buildPath, matchPath } from './utils/build-path';
 import { History } from 'history';
-import {ParamsSerializer, RouteInstance, RouteParams, RouteQuery} from './types';
+import {
+  ParamsSerializer,
+  RouteInstance,
+  RouteParams,
+  RouteQuery,
+} from './types';
 import {
   attach,
   createEffect,
@@ -84,7 +89,7 @@ export const createHistoryRouter = (params: {
   routes: UnmappedRouteObject<any>[];
   notFoundRoute?: RouteInstance<any>;
   hydrate?: boolean;
-  serialize?: ParamsSerializer
+  serialize?: ParamsSerializer;
 }) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
   type EnterParams<Params extends RouteParams> = {
@@ -141,7 +146,7 @@ export const createHistoryRouter = (params: {
         pathCreator: route.path,
         params,
         query,
-        serialize
+        serialize,
       });
       return {
         path,
@@ -361,9 +366,9 @@ export const createHistoryRouter = (params: {
       history: $history,
     },
     effect: async ({ history }) => {
-      const deserializedQuery = serialize?.read ? serialize.read(history.location.search) : Object.fromEntries(
-        new URLSearchParams(history.location.search)
-      );
+      const deserializedQuery = serialize?.read
+        ? serialize.read(history.location.search)
+        : Object.fromEntries(new URLSearchParams(history.location.search));
       const [path, query, hash] = [
         history.location.pathname,
         deserializedQuery as RouteQuery,

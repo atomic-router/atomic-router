@@ -1,6 +1,11 @@
 import { match, compile } from 'path-to-regexp';
 
-import {RouteParams, PathCreator, RouteQuery, ParamsSerializer} from '../types';
+import {
+  RouteParams,
+  PathCreator,
+  RouteQuery,
+  ParamsSerializer,
+} from '../types';
 
 // NOTE: If path is URL - provide it as is
 // Otherwise - extract pathname and hash
@@ -28,13 +33,13 @@ export function buildPath<Params extends RouteParams>({
   pathCreator,
   params,
   query,
-  serialize
+  serialize,
 }: BuildPathParams<Params>) {
   const pathname = compile(pathCreator)(params);
-  const serializedParams = serialize?.write ? serialize.write(query) : new URLSearchParams(query as Record<string, string>);
-  const qs = Object.keys(query).length
-    ? `?${serializedParams}`
-    : '';
+  const serializedParams = serialize?.write
+    ? serialize.write(query)
+    : new URLSearchParams(query as Record<string, string>);
+  const qs = Object.keys(query).length ? `?${serializedParams}` : '';
   const url = `${pathname}${qs}`;
   return url;
 }
