@@ -34,12 +34,10 @@ describe('chainRoute', () => {
 
   it('attach-like config in beforeOpen', async () => {
     const route = createRoute<{ x: string }>();
-    const cb = vi.fn(
-      async (payload: { param: string; queryParam: string }) => {
-        await sleep(100);
-        return payload;
-      }
-    );
+    const cb = vi.fn(async (payload: { param: string; queryParam: string }) => {
+      await sleep(100);
+      return payload;
+    });
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
       route,
