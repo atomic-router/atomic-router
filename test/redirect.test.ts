@@ -1,14 +1,8 @@
 import { createEvent, createStore } from 'effector';
 import { createRoute, redirect } from '../src';
 
-const sleep = (t: number) => {
-  return new Promise((r) => {
-    setTimeout(r, t);
-  });
-};
-
 describe('redirect', () => {
-  it('Opens `route` on `clock` trigger', async () => {
+  it('Opens `route` on `clock` trigger',  () => {
     const clock = createEvent();
     const route = createRoute();
 
@@ -18,8 +12,6 @@ describe('redirect', () => {
     });
 
     clock();
-
-    await sleep(0);
 
     expect(route.$isOpened.getState()).toBeTruthy();
     expect(route.$params.getState()).toEqual({});
@@ -53,7 +45,7 @@ describe('redirect', () => {
   //   expect(route.$query.getState()).toEqual({ baz: 'test' });
   // });
 
-  it('Object-like `params` & `query`', async () => {
+  it('Object-like `params` & `query`',  () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
@@ -66,14 +58,12 @@ describe('redirect', () => {
 
     clock();
 
-    await sleep(0);
-
     expect(route.$isOpened.getState()).toBeTruthy();
     expect(route.$params.getState()).toEqual({ foo: 'bar' });
     expect(route.$query.getState()).toEqual({ baz: 'test' });
   });
 
-  it('Store-like `params` & `query`', async () => {
+  it('Store-like `params` & `query`',  () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
@@ -86,14 +76,12 @@ describe('redirect', () => {
 
     clock();
 
-    await sleep(0);
-
     expect(route.$isOpened.getState()).toBeTruthy();
     expect(route.$params.getState()).toEqual({ foo: 'bar' });
     expect(route.$query.getState()).toEqual({ baz: 'test' });
   });
 
-  it('Function-like `params` & `query`', async () => {
+  it('Function-like `params` & `query`', () => {
     const clock = createEvent<string>();
     const route = createRoute<{ foo: string }>();
 
@@ -105,8 +93,6 @@ describe('redirect', () => {
     });
 
     clock('bar');
-
-    await sleep(0);
 
     expect(route.$isOpened.getState()).toBeTruthy();
     expect(route.$params.getState()).toEqual({ foo: 'bar' });
