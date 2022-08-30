@@ -1,5 +1,6 @@
 import { allSettled, fork } from 'effector';
 import { createRoute } from '../src';
+import { describe, it, expect, vi } from 'vitest';
 
 const route = createRoute<{ postId: string }>();
 
@@ -100,7 +101,7 @@ describe('.navigate() method', () => {
 
 describe('Lifecycle: .opened()', () => {
   it('Triggered on .open()/.navigate() calls', async () => {
-    const cb = jest.fn();
+    const cb = vi.fn();
     route.opened.watch(cb);
     const scope = fork();
     await allSettled(route.navigate, {
@@ -116,7 +117,7 @@ describe('Lifecycle: .opened()', () => {
   });
 
   it('Does not get triggered if route is already opened', async () => {
-    const cb = jest.fn();
+    const cb = vi.fn();
     route.opened.watch(cb);
     const scope = fork();
     await allSettled(route.open, {
@@ -133,7 +134,7 @@ describe('Lifecycle: .opened()', () => {
 
 describe('Lifecycle: .updated()', () => {
   it('Does not get triggered if route is not opened', async () => {
-    const cb = jest.fn();
+    const cb = vi.fn();
     route.updated.watch(cb);
     const scope = fork();
     await allSettled(route.open, {
@@ -144,7 +145,7 @@ describe('Lifecycle: .updated()', () => {
   });
 
   it('Triggered on .open()/.navigate() calls if opened', async () => {
-    const cb = jest.fn();
+    const cb = vi.fn();
     route.updated.watch(cb);
     const scope = fork();
     await allSettled(route.navigate, {

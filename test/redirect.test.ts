@@ -1,5 +1,6 @@
 import { createEvent, createStore } from 'effector';
 import { createRoute, redirect } from '../src';
+import { describe, it, expect } from 'vitest';
 
 const sleep = (t: number) => {
   return new Promise((r) => {
