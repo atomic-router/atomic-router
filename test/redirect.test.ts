@@ -2,7 +2,7 @@ import { createEvent, createStore } from 'effector';
 import { createRoute, redirect } from '../src';
 
 describe('redirect', () => {
-  it('Opens `route` on `clock` trigger',  () => {
+  it('Opens `route` on `clock` trigger', () => {
     const clock = createEvent();
     const route = createRoute();
 
@@ -45,7 +45,7 @@ describe('redirect', () => {
   //   expect(route.$query.getState()).toEqual({ baz: 'test' });
   // });
 
-  it('Object-like `params` & `query`',  () => {
+  it('Object-like `params` & `query`', () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
@@ -63,7 +63,7 @@ describe('redirect', () => {
     expect(route.$query.getState()).toEqual({ baz: 'test' });
   });
 
-  it('Store-like `params` & `query`',  () => {
+  it('Store-like `params` & `query`', () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
