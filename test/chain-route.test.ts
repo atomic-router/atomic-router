@@ -1,44 +1,33 @@
 import { createEffect, createEvent } from 'effector';
 import { createRoute, chainRoute } from '../src';
 
-const sleep = (t: number) => {
-  return new Promise((r) => {
-    setTimeout(r, t);
-  });
-};
-
 describe('chainRoute', () => {
-  it('Creates a chained route', async () => {
+  it('Creates a chained route', () => {
     const route = createRoute();
     const chainedRoute = chainRoute(route);
-    await route.open({});
-    await sleep(100);
+    route.open({});
     expect(chainedRoute.$isOpened.getState()).toBeTruthy();
   });
 
-  it('Effect in beforeOpen', async () => {
+  it('Effect in beforeOpen', () => {
     const route = createRoute();
-    const cb = jest.fn((_: any) => sleep(100));
+    const cb = jest.fn((_: any) => {});
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
       route,
       beforeOpen: fx,
     });
-    await route.open({});
-    expect(cb).toBeCalledTimes(1);
     expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    await sleep(100);
+    route.open({});
+    expect(cb).toBeCalledTimes(1);
     expect(chainedRoute.$isOpened.getState()).toBeTruthy();
   });
 
-  it('attach-like config in beforeOpen', async () => {
+  it('attach-like config in beforeOpen', () => {
     const route = createRoute<{ x: string }>();
-    const cb = jest.fn(
-      async (payload: { param: string; queryParam: string }) => {
-        await sleep(100);
-        return payload;
-      }
-    );
+    const cb = jest.fn((payload: { param: string; queryParam: string }) => {
+      return payload;
+    });
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
       route,
@@ -50,18 +39,17 @@ describe('chainRoute', () => {
         }),
       },
     });
-    await route.navigate({
+    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
+    route.navigate({
       params: { x: 'param' },
       query: { foo: 'query' },
     });
     expect(cb).toBeCalledTimes(1);
     expect(cb).toBeCalledWith({ param: 'param', queryParam: 'query' });
-    expect(chainedRoute.$isOpened.getState()).toBeFalsy();
-    await sleep(100);
     expect(chainedRoute.$isOpened.getState()).toBeTruthy();
   });
 
-  it('openOn parameter', async () => {
+  it('openOn parameter', () => {
     const route = createRoute<{ x: string }>();
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
@@ -74,7 +62,7 @@ describe('chainRoute', () => {
       openOn,
       cancelOn,
     });
-    await route.navigate({
+    route.navigate({
       replace: false,
       params: { x: 'param' },
       query: { foo: 'query' },
@@ -87,11 +75,10 @@ describe('chainRoute', () => {
     });
     expect(chainedRoute.$isOpened.getState()).toBeFalsy();
     openOn();
-    await sleep(100);
     expect(chainedRoute.$isOpened.getState()).toBeTruthy();
   });
 
-  it('cancelOn parameter', async () => {
+  it('cancelOn parameter', () => {
     const route = createRoute<{ x: string }>();
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
@@ -104,7 +91,7 @@ describe('chainRoute', () => {
       openOn,
       cancelOn,
     });
-    await route.navigate({
+    route.navigate({
       params: { x: 'param' },
       query: { foo: 'query' },
     });
@@ -116,10 +103,8 @@ describe('chainRoute', () => {
     });
     expect(chainedRoute.$isOpened.getState()).toBeFalsy();
     cancelOn();
-    await sleep(100);
     expect(chainedRoute.$isOpened.getState()).toBeFalsy();
     openOn();
-    await sleep(100);
     expect(chainedRoute.$isOpened.getState()).toBeFalsy();
   });
 });
