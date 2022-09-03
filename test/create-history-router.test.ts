@@ -4,6 +4,7 @@
 import { allSettled, fork } from 'effector';
 import { createMemoryHistory } from 'history';
 import { createHistoryRouter, createRoute } from '../src';
+import queryString from 'query-string';
 
 const foo = createRoute();
 const bar = createRoute();
@@ -153,6 +154,48 @@ describe('Hash mode', () => {
 });
 
 describe('Other checks', () => {
+  it('Supports custom serde for query strings', async () => {
+    const router = createHistoryRouter({
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+        { route: first, path: '/first' },
+        { route: firstClone, path: '/first' },
+        { route: withParams, path: '/posts/:postId' },
+        { route: hashed, path: '/test/#/swap/:token' },
+      ],
+      serialize: {
+        read: (query) =>
+          queryString.parse(query, {
+            arrayFormat: 'separator',
+            arrayFormatSeparator: '|',
+          }),
+        write: (params) =>
+          queryString.stringify(params, {
+            arrayFormat: 'separator',
+            arrayFormatSeparator: '|',
+          }),
+      },
+    });
+    const updated = jest.fn();
+    withParams.updated.watch(updated);
+    const history = createMemoryHistory();
+    history.push('/');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    history.push('/posts/foo');
+    history.push('/posts/bar?baz=1234|4321');
+    await sleep(0);
+    expect(updated).toBeCalledTimes(1);
+    expect(updated).toBeCalledWith({
+      params: { postId: 'bar' },
+      query: { baz: ['1234', '4321'] },
+    });
+  });
+
   it('Supports multiple routes opened at the same time', async () => {
     const history = createMemoryHistory();
     history.push('/first');
