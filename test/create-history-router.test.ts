@@ -6,12 +6,6 @@ import { createMemoryHistory } from 'history';
 import { createHistoryRouter, createRoute } from '../src';
 import { describe, it, expect, vi } from 'vitest';
 
-const sleep = (t: number) => {
-  return new Promise((r) => {
-    setTimeout(r, t);
-  });
-};
-
 const foo = createRoute();
 const bar = createRoute();
 const first = createRoute();
@@ -89,7 +83,6 @@ describe('Lifecycle', () => {
       params: history,
     });
     history.push('/posts/foo?bar=baz');
-    await sleep(100);
     expect(opened).toBeCalledWith({
       params: { postId: 'foo' },
       query: { bar: 'baz' },
@@ -108,7 +101,6 @@ describe('Lifecycle', () => {
     });
     history.push('/posts/foo');
     history.push('/posts/bar');
-    await sleep(0);
     expect(opened).toBeCalledTimes(1);
   });
 
@@ -124,7 +116,6 @@ describe('Lifecycle', () => {
     });
     history.push('/posts/foo');
     history.push('/posts/bar?baz=1234');
-    await sleep(0);
     expect(updated).toBeCalledTimes(1);
     expect(updated).toBeCalledWith({
       params: { postId: 'bar' },
@@ -143,7 +134,6 @@ describe('Lifecycle', () => {
       params: history,
     });
     history.push('/foo');
-    await sleep(0);
     expect(closed).toBeCalledTimes(1);
   });
 });
@@ -158,7 +148,6 @@ describe('Hash mode', () => {
       params: history,
     });
     history.push('/test/#/swap/ETH');
-    await sleep(0);
     expect(scope.getState(hashed.$isOpened)).toBe(true);
     expect(scope.getState(hashed.$params)).toEqual({ token: 'ETH' });
   });
@@ -198,7 +187,6 @@ describe('Other checks', () => {
     });
     history.push('/test/bar');
     history.push('/test/foo/bar');
-    await sleep(0);
     expect(opened).toBeCalledTimes(1);
     expect(updated).toBeCalledTimes(2);
   });

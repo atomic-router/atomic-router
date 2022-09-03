@@ -356,7 +356,7 @@ export const createHistoryRouter = (params: {
     source: {
       history: $history,
     },
-    effect: async ({ history }) => {
+    effect({ history }) {
       const [path, query, hash] = [
         history.location.pathname,
         Object.fromEntries(
@@ -382,7 +382,7 @@ export const createHistoryRouter = (params: {
     source: {
       history: $history,
     },
-    effect: async ({ history }) => {
+    effect({ history }) {
       let scopedRecheck = recheckFx;
       try {
         // @ts-expect-error
