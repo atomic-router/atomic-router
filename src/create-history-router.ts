@@ -365,7 +365,7 @@ export const createHistoryRouter = (params: {
     source: {
       history: $history,
     },
-    effect: async ({ history }) => {
+    effect({ history }) {
       const deserializedQuery = serialize?.read
         ? serialize.read(history.location.search)
         : Object.fromEntries(new URLSearchParams(history.location.search));
@@ -392,7 +392,7 @@ export const createHistoryRouter = (params: {
     source: {
       history: $history,
     },
-    effect: async ({ history }) => {
+    effect({ history }) {
       let scopedRecheck = recheckFx;
       try {
         // @ts-expect-error
