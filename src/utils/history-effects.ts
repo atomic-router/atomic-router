@@ -3,21 +3,21 @@ import { createEffect } from 'effector';
 
 import { HistoryBackForwardParams, HistoryPushParams } from '../types';
 
-const checkHistory = (history: History) => {
+function assertHistory(history: History) {
   if (!history) {
     throw new Error('[Routing] No history provided');
   }
-};
+}
 
 export const historyPushFx = createEffect((params: HistoryPushParams) => {
-  checkHistory(params.history);
+  assertHistory(params.history);
   params.history[params.method](params.path, {});
   return params;
 });
 
 export const historyBackFx = createEffect(
   (history: HistoryBackForwardParams) => {
-    checkHistory(history);
+    assertHistory(history);
     history.back();
     return history;
   }
@@ -25,7 +25,7 @@ export const historyBackFx = createEffect(
 
 export const historyForwardFx = createEffect(
   (history: HistoryBackForwardParams) => {
-    checkHistory(history);
+    assertHistory(history);
     history.forward();
     return history;
   }

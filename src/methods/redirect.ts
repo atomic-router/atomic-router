@@ -7,9 +7,11 @@ import {
   sample,
   Store,
 } from 'effector';
-import { RouteInstance, RouteQuery } from '../types';
+import { RouteInstance, RouteParams, RouteQuery } from '../types';
 
-type RedirectParams<T, Params> = Params extends { [key in string]: never }
+type RedirectParams<T, Params extends RouteParams> = Params extends {
+  [key in string]: never;
+}
   ? {
       clock?: Clock<T>;
       route: RouteInstance<Params>;
@@ -33,11 +35,13 @@ type RedirectParams<T, Params> = Params extends { [key in string]: never }
         };
 
 /** Opens passed `route` upon `clock` trigger */
-export const redirect = <T, Params>(options: RedirectParams<T, Params>) => {
+export function redirect<T, Params extends RouteParams>(
+  options: RedirectParams<T, Params>
+) {
   const clock = options.clock
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
-  // @ts-expect-error
+
   let params = toStore(options.params || {});
   let query = toStore(options.query || {});
 
@@ -51,8 +55,8 @@ export const redirect = <T, Params>(options: RedirectParams<T, Params>) => {
     target: options.route.navigate,
   });
   return clock;
-};
+}
 
-const toStore = <T>(payload: T | Store<T>): Store<T> => {
+function toStore<T>(payload: T | Store<T>): Store<T> {
   return is.store(payload) ? payload : createStore(payload as T);
-};
+}

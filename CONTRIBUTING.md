@@ -1,3 +1,7 @@
+## Development
+
+Please, use `pnpm` to install dependencies.
+
 ## Release process
 
 1. Check out the [draft release](https://github.com/atomic-router/atomic-router/releases).

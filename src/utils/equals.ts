@@ -1,4 +1,4 @@
-export const paramsEqual = (a: Record<string, any>, b: Record<string, any>) => {
+export function paramsEqual(a: Record<string, any>, b: Record<string, any>) {
   if (Object.keys(a).length !== Object.keys(b).length) {
     return false;
   }
@@ -12,4 +12,4 @@ export const paramsEqual = (a: Record<string, any>, b: Record<string, any>) => {
     }
   }
   return true;
-};
+}

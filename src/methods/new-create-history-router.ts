@@ -1,32 +1,25 @@
 import { History } from 'history';
-import {
-  sample,
-  createEvent,
-  createStore,
-  attach,
-  Unit,
-  scopeBind,
-} from 'effector';
+import { attach, createEvent, createStore, sample, scopeBind } from 'effector';
 import { createRouterControls } from './create-router-controls';
 import {
-  UnmappedRouteObject,
-  RouteInstance,
-  RouteQuery,
   HistoryPushParams,
+  RouteInstance,
   RouteObject,
   RouteParams,
+  RouteQuery,
+  UnmappedRouteObject,
 } from '../types';
 import { remapRouteObjects } from '../utils/remap-route-objects';
 import { paramsEqual } from '../utils/equals';
 import { buildPath, matchPath } from '../utils/build-path';
 import { isRoute } from './is-route';
 import {
-  historyPushFx,
   historyBackFx,
   historyForwardFx,
+  historyPushFx,
 } from '../utils/history-effects';
 
-export const createHistoryRouter = ({
+export function createHistoryRouter({
   base,
   routes,
   notFoundRoute,
@@ -38,7 +31,7 @@ export const createHistoryRouter = ({
   notFoundRoute?: RouteInstance<any>;
   hydrate?: boolean;
   controls?: ReturnType<typeof createRouterControls>;
-}) => {
+}) {
   const remappedRoutes = remapRouteObjects(routes, base);
 
   const setHistory = createEvent<History>();
@@ -81,19 +74,18 @@ export const createHistoryRouter = ({
   const $isRouteNavigateInProgress = createStore(false);
 
   const pushFx = attach({
-    effect: historyPushFx,
     source: $history,
-    mapParams: (params: Omit<HistoryPushParams, 'history'>, history) => {
-      return {
+    effect(history, params: Omit<HistoryPushParams, 'history'>) {
+      return historyPushFx({
         history,
         ...params,
-      };
+      });
     },
   });
 
   const subscribeHistoryFx = attach({
     source: $history,
-    effect: (history) => {
+    effect(history) {
       let scopedHistoryUpdated = historyUpdated;
       try {
         // @ts-expect-error
@@ -114,7 +106,7 @@ export const createHistoryRouter = ({
     clock: hydrate
       ? [historyUpdated]
       : [historyUpdated, subscribeHistoryFx.done],
-  }) as Unit<any>;
+  });
 
   /// History subscription
   $history.on(setHistory, (_, history) => history);
@@ -127,19 +119,13 @@ export const createHistoryRouter = ({
   sample({
     clock: historyUpdateTriggered,
     source: $history,
-    fn: (history) => {
-      const [path, query, hash] = [
-        history.location.pathname,
-        Object.fromEntries(
-          new URLSearchParams(history.location.search)
-        ) as RouteQuery,
-        history.location.hash,
-      ];
-      return {
-        path,
-        query,
-        hash,
-      };
+    fn(history) {
+      const path = history.location.pathname;
+      const hash = history.location.hash;
+      const query: RouteQuery = Object.fromEntries(
+        new URLSearchParams(history.location.search)
+      );
+      return { path, query, hash };
     },
     target: recalculateTriggered,
   });
@@ -166,11 +152,8 @@ export const createHistoryRouter = ({
       clock: routeStateChangeRequested.updated,
       source: [routeObj.route.$params, routeObj.route.$query],
       // Skip .updated() calls if params & query are the same
-      filter: ([params, query], next) => {
-        return (
-          !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
-        );
-      },
+      filter: ([params, query], next) =>
+        !paramsEqual(params, next.params) || !paramsEqual(query, next.query),
       fn: (_, payload) => payload!,
       target: routeObj.route.updated,
     });
@@ -196,8 +179,8 @@ export const createHistoryRouter = ({
   for (const routeObj of remappedRoutes) {
     // Run "Handling route.navigateFx navigation" step
     sample({
-      clock: routeObj.route.navigate.done,
-      fn: ({ result: { params, query } }) => ({
+      clock: routeObj.route.navigate.doneData,
+      fn: ({ params, query }) => ({
         route: routeObj,
         params,
         query,
@@ -210,18 +193,13 @@ export const createHistoryRouter = ({
 
   sample({
     clock: navigateFromRouteTriggered,
-    fn: ({ route, params, query }) => {
+    fn({ route, params, query }) {
       const path = buildPath({
         pathCreator: route.path,
         params,
         query,
       });
-      return {
-        path,
-        params,
-        query,
-        method: 'push' as const,
-      };
+      return { path, params, query, method: 'push' as const };
     },
     target: pushFx,
   });
@@ -232,7 +210,7 @@ export const createHistoryRouter = ({
   // Triggered on every history change + once when history instance is set
   sample({
     clock: recalculateTriggered,
-    fn: ({ path, query, hash }) => {
+    fn({ path, query, hash }) {
       // WARNING: These arrays are immutable
       // But, for some reason, if we switch let->const,
       // Most of the test cases fail
@@ -297,9 +275,9 @@ export const createHistoryRouter = ({
     target: routesClosed,
   });
 
-  $activeRoutes.on(recalculated, (_, { opened }) => {
-    return opened.map((recheckResult) => recheckResult.routeObj.route);
-  });
+  $activeRoutes.on(recalculated, (_, { opened }) =>
+    opened.map((recheckResult) => recheckResult.routeObj.route)
+  );
 
   /// Handling 404
   sample({
@@ -357,7 +335,7 @@ export const createHistoryRouter = ({
     filter: $isRouteNavigateInProgress.map(
       (isRouteNavigateInProgress) => !isRouteNavigateInProgress
     ),
-    fn: ({ path }, query) => {
+    fn({ path }, query) {
       const qs = new URLSearchParams(query);
       return {
         path: `${path}${qs ? `?${qs}` : ''}`,
@@ -372,14 +350,14 @@ export const createHistoryRouter = ({
   /// Initialization
   sample({
     clock: recalculated,
-    filter: $isFirstCheckPassed.map(
-      (isFirstCheckPassed) => !isFirstCheckPassed
-    ),
     source: {
       activeRoutes: $activeRoutes,
       path: $path,
       query: $query,
     },
+    filter: $isFirstCheckPassed.map(
+      (isFirstCheckPassed) => !isFirstCheckPassed
+    ),
     target: initialized,
   });
 
@@ -398,7 +376,7 @@ export const createHistoryRouter = ({
     initialized,
     routeNotFound,
   };
-};
+}
 
 type RecalculationResult<Params extends RouteParams> = {
   routeObj: RouteObject<Params>;

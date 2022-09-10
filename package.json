@@ -16,9 +16,9 @@
     "test": "jest -i",
     "test:watch": "jest --watch -i",
     "build": "rollup -c",
-    "prepare": "yarn build",
-    "lint": "yarn prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
-    "format": "yarn prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
+    "prepare": "pnpm build",
+    "lint": "prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
+    "format": "prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
   },
   "peerDependencies": {
     "effector": "^22",
@@ -76,5 +76,6 @@
       "path": "dist/atomic-router.cjs.js",
       "limit": "10 kB"
     }
-  ]
+  ],
+  "packageManager": "pnpm@7.9.3"
 }

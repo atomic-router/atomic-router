@@ -14,21 +14,20 @@ import {
   Kind,
 } from '../types';
 
-type createRouteParams = {
+type CreateRouteParams = {
   filter?: Store<boolean>;
 };
 
-export const createRoute = <Params extends RouteParams = {}>(
-  params: createRouteParams = {}
-) => {
-  const navigateFx = createEffect(
-    async ({ params, query }: RouteParamsAndQuery<Params>) => {
-      return {
-        params: params || {},
-        query: query || {},
-      } as RouteParamsAndQuery<Params>;
-    }
-  );
+export function createRoute<Params extends RouteParams = {}>(
+  params: CreateRouteParams = {}
+) {
+  const navigateFx = createEffect<
+    RouteParamsAndQuery<Params>,
+    RouteParamsAndQuery<Params>
+  >(async ({ params, query }) => ({
+    params: params || {},
+    query: query || {},
+  }));
 
   const openFx = attach({
     effect: navigateFx,
@@ -96,4 +95,4 @@ export const createRoute = <Params extends RouteParams = {}>(
   };
 
   return instance;
-};
+}

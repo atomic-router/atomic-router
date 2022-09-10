@@ -1,9 +1,9 @@
 import { UnmappedRouteObject, RouteObject } from '../types';
 
-export const remapRouteObjects = (
+export function remapRouteObjects(
   objects: UnmappedRouteObject<any>[],
   basePath: string = ''
-) => {
+) {
   let next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
@@ -35,4 +35,4 @@ export const remapRouteObjects = (
     }
   }
   return nonDerivedRoutes;
-};
+}

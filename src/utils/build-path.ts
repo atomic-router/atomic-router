@@ -14,9 +14,9 @@ const getComparablePath = (path: string) => {
 
 // NOTE: path-to-regexp treats ":" in "https://" as param start
 // So we escape it
-const normalizePathCreator = (pathCreator: string) => {
+function normalizePathCreator(pathCreator: string) {
   return pathCreator.replace('://', '\\://');
-};
+}
 
 type BuildPathParams<Params extends RouteParams> = {
   pathCreator: PathCreator<Params>;

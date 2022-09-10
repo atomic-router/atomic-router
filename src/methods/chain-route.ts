@@ -16,12 +16,17 @@ import {
 } from 'effector';
 
 import { createRoute } from './create-route';
-import { RouteInstance, RouteParamsAndQuery, RouteQuery } from '../types';
+import {
+  RouteInstance,
+  RouteParams,
+  RouteParamsAndQuery,
+  RouteQuery,
+} from '../types';
 
 import { isRoute } from './is-route';
 
 type ChainRouteParamsInternalAttach<
-  Params,
+  Params extends RouteParams,
   FX extends Effect<any, any, any>
 > = {
   route: RouteInstance<Params>;
@@ -40,13 +45,13 @@ type ChainRouteParamsInternalAttach<
   cancelOn?: Clock<any>;
 };
 
-type ChainRouteParamsWithEffect<Params> = {
+type ChainRouteParamsWithEffect<Params extends RouteParams> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
   beforeOpen: Effect<RouteParamsAndQuery<Params>, any, any>;
 };
 
-type ChainRouteParamsAdvanced<Params> = {
+type ChainRouteParamsAdvanced<Params extends RouteParams> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
   beforeOpen: Clock<RouteParamsAndQuery<Params>>;
@@ -54,7 +59,7 @@ type ChainRouteParamsAdvanced<Params> = {
   cancelOn?: Clock<any>;
 };
 
-type ChainRouteParamsNormalized<Params> = {
+type ChainRouteParamsNormalized<Params extends RouteParams> = {
   route: RouteInstance<Params>;
   chainedRoute: RouteInstance<Params>;
   beforeOpen: Clock<RouteParamsAndQuery<Params>>;
@@ -62,17 +67,21 @@ type ChainRouteParamsNormalized<Params> = {
   cancelOn: Clock<any>;
 };
 
-type chainRouteParams<Params, FX extends Effect<any, any, any>> =
+type chainRouteParams<
+  Params extends RouteParams,
+  FX extends Effect<any, any, any>
+> =
   | RouteInstance<Params>
   | ChainRouteParamsWithEffect<Params>
   | ChainRouteParamsAdvanced<Params>
   | ChainRouteParamsInternalAttach<Params, FX>;
 
-const normalizeChainRouteParams = <Params, FX extends Effect<any, any, any>>(
-  params: chainRouteParams<Params, FX>
-): ChainRouteParamsNormalized<Params> => {
-  // @ts-expect-error
-  const resultParams: ChainRouteParamsNormalized<Params> = {};
+function normalizeChainRouteParams<
+  Params extends RouteParams,
+  FX extends Effect<any, any, any>
+>(params: chainRouteParams<Params, FX>): ChainRouteParamsNormalized<Params> {
+  const resultParams: ChainRouteParamsNormalized<Params> =
+    {} as ChainRouteParamsNormalized<Params>;
   if (isRoute(params)) {
     Object.assign(resultParams, {
       route: params,
@@ -110,23 +119,24 @@ const normalizeChainRouteParams = <Params, FX extends Effect<any, any, any>>(
     }),
   });
   return resultParams;
-};
+}
 
-function chainRoute<Params>(
+function chainRoute<Params extends RouteParams>(
   instance: RouteInstance<Params>
 ): RouteInstance<Params>;
 
-function chainRoute<Params>(
+function chainRoute<Params extends RouteParams>(
   config: ChainRouteParamsWithEffect<Params>
 ): RouteInstance<Params>;
 
-function chainRoute<Params>(
+function chainRoute<Params extends RouteParams>(
   config: ChainRouteParamsAdvanced<Params>
 ): RouteInstance<Params>;
 
-function chainRoute<Params, FX extends Effect<any, any, any>>(
-  config: ChainRouteParamsInternalAttach<Params, FX>
-): RouteInstance<Params>;
+function chainRoute<
+  Params extends RouteParams,
+  FX extends Effect<any, any, any>
+>(config: ChainRouteParamsInternalAttach<Params, FX>): RouteInstance<Params>;
 
 /**
  * Creates chained route
@@ -138,9 +148,10 @@ function chainRoute<Params, FX extends Effect<any, any, any>>(
  * @param {Clock<any>} params.cancelOn - Cancels chain
  * @returns {RouteInstance<any>} `chainedRoute`
  */
-function chainRoute<Params, FX extends Effect<any, any, any>>(
-  params: chainRouteParams<Params, FX>
-) {
+function chainRoute<
+  Params extends RouteParams,
+  FX extends Effect<any, any, any>
+>(params: chainRouteParams<Params, FX>) {
   const { route, chainedRoute, beforeOpen, openOn, cancelOn } =
     normalizeChainRouteParams(params);
   const $params = createStore({} as StoreValue<typeof route['$params']>);
@@ -184,4 +195,5 @@ function chainRoute<Params, FX extends Effect<any, any, any>>(
   return chainedRoute;
 }
 
+// This is written separately to correctly export all type overloads
 export { chainRoute };
