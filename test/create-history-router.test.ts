@@ -98,7 +98,7 @@ describe('Initialization', () => {
     expect(scope.getState(withParams.$query)).toEqual({});
   });
 
-  it(`Doesn't triggers history again after push`, async () => {
+  it.only(`Doesn't triggers history again after push`, async () => {
     const history = createMemoryHistory();
     const fn = listenHistoryChanges(history);
     // history.listen((e) => console.log('change', e));
@@ -121,15 +121,9 @@ describe('Initialization', () => {
         },
         {
           "action": "PUSH",
-          "pathname": "/foo",
-          "search": "?bar=baz",
-          "state": {},
-        },
-        {
-          "action": "PUSH",
           "pathname": "/bar",
           "search": "?bar=baz2",
-          "state": {},
+          "state": null,
         },
       ]
     `);
