@@ -101,8 +101,8 @@ describe('Initialization', () => {
   it(`Doesn't triggers history again after push`, async () => {
     const history = createMemoryHistory();
     const fn = listenHistoryChanges(history);
-    // history.listen((e) => console.log('change', e));
     history.replace('/foo?bar=baz');
+    // history.listen((e) => console.log('change', e));
     const scope = fork();
     await allSettled(router.setHistory, {
       scope,
@@ -246,17 +246,19 @@ describe('Query', () => {
   it('Updates path on $query change', async () => {
     const history = createMemoryHistory();
     history.push('/foo?param=test');
-    const changed = createEvent<any>();
+    const changed = createEvent<Record<string, string>>();
     router.$query.on(changed, (_, next) => next);
     const scope = fork();
     await allSettled(router.setHistory, {
       scope,
       params: history,
     });
+    expect(history.location.search).toBe('?param=test');
     await allSettled(changed, {
       scope,
       params: { bar: 'baz' },
     });
+    expect(scope.getState(router.$query)).toEqual({ bar: 'baz' });
     expect(history.location.search).toBe('?bar=baz');
     expect(scope.getState(router.$query)).toEqual({
       bar: 'baz',

@@ -4,6 +4,7 @@ module.exports = {
       'effector/babel-plugin',
       {
         debugSids: true,
+        addLoc: true,
         factories: [
           './src/methods/chain-route',
           './src/methods/create-history-router',

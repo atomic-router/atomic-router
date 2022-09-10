@@ -67,7 +67,13 @@ export function createHistoryRouter({
   }>();
 
   const $path = createStore('');
-  const $query = createStore<RouteQuery>({});
+  const $query = createStore<RouteQuery>(
+    {},
+    {
+      name: 'historyRouter.$query',
+      updateFilter: (newQuery, oldQuery) => !paramsEqual(newQuery, oldQuery),
+    }
+  );
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
     serialize: 'ignore',
   });
@@ -105,12 +111,30 @@ export function createHistoryRouter({
     },
   });
 
-  // If `hydrate` flag is set,
-  // don't trigger recheck on history init
-  const historyUpdateTriggered = sample({
+  const historyUpdatedParsed = sample({
     clock: hydrate
       ? [historyUpdated]
       : [historyUpdated, subscribeHistoryFx.done],
+    source: $history,
+    fn: (history) => ({
+      path: history?.location.pathname ?? '',
+      query:
+        serialize?.read(history?.location.search ?? '') ??
+        Object.fromEntries(new URLSearchParams(history?.location.search)),
+    }),
+  });
+
+  // If `hydrate` flag is set,
+  // don't trigger recheck on history init
+  const historyUpdateTriggered = sample({
+    clock: historyUpdatedParsed,
+    source: {
+      path: $path,
+      query: $query,
+    },
+    filter: ({ path: savedPath, query: savedQuery }, history) =>
+      history.path !== savedPath || !paramsEqual(history.query, savedQuery),
+    fn: (_, history) => history,
   });
 
   /// History subscription
@@ -137,20 +161,32 @@ export function createHistoryRouter({
 
   /// Routes updates handling
   for (const routeObj of remappedRoutes) {
+    const currentRouteMatched = routesMatched.filterMap(
+      containsCurrentRoute(routeObj)
+    );
+    const currentRouteMismatched = routesMismatched.filterMap(
+      containsCurrentRoute(routeObj)
+    );
     const routeStateChangeRequested = {
       opened: sample({
-        clock: routesMatched.filterMap(containsCurrentRoute(routeObj)),
+        clock: currentRouteMatched,
         filter: not(routeObj.route.$isOpened),
       }),
       updated: sample({
-        clock: routesMatched.filterMap(containsCurrentRoute(routeObj)),
+        clock: currentRouteMatched,
         filter: routeObj.route.$isOpened,
       }),
       closed: sample({
-        clock: routesMismatched.filterMap(containsCurrentRoute(routeObj)),
+        clock: currentRouteMismatched,
         filter: routeObj.route.$isOpened,
       }),
     };
+
+    // debug({
+    //   [`${routeObj.path}.opened`]: routeStateChangeRequested.opened,
+    //   [`${routeObj.path}.updated`]: routeStateChangeRequested.updated,
+    //   [`${routeObj.path}.closed`]: routeStateChangeRequested.closed,
+    // });
 
     // Trigger .updated() for the routes marked as "matched" but already opened
     sample({
@@ -265,9 +301,9 @@ export function createHistoryRouter({
     target: recalculated,
   });
 
-  $path.on(recalculated, (_, { path }) => path);
+  $path.on(historyUpdateTriggered, (_, { path }) => path);
 
-  $query.on(recalculated, (_, { query }) => query);
+  $query.on(historyUpdateTriggered, (_, { query }) => query);
 
   const matchingRecalculated = recalculated.map(({ matching }) => matching);
 
@@ -335,17 +371,33 @@ export function createHistoryRouter({
   /// Query syncing
   sample({
     clock: $query,
+    source: controls.$query,
+    filter: (queryControl, query) => !paramsEqual(query, queryControl),
+    fn: (_, query) => query,
     target: controls.$query,
   });
 
   sample({
     clock: controls.$query,
-    source: { path: $path },
-    filter: $isRouteNavigateInProgress.map(
-      (isRouteNavigateInProgress) => !isRouteNavigateInProgress
-    ),
+    source: {
+      path: $path,
+      localQuery: $query,
+      isNavigateInProgress: $isRouteNavigateInProgress,
+      realHistory: $history,
+    },
+    filter: ({ localQuery, isNavigateInProgress, realHistory }, query) => {
+      const realQuery =
+        serialize?.read(realHistory.location.search) ??
+        Object.fromEntries(new URLSearchParams(realHistory.location.search));
+      const result =
+        !isNavigateInProgress ||
+        !paramsEqual(query, realQuery) ||
+        !paramsEqual(localQuery, query);
+
+      return result;
+    },
     fn({ path }, query) {
-      const qs = new URLSearchParams(query);
+      const qs = serialize?.write(query) ?? new URLSearchParams(query);
       return {
         path: `${path}${qs ? `?${qs}` : ''}`,
         params: {},
