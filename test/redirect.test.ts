@@ -24,31 +24,31 @@ describe('redirect', () => {
   // TODO: Would be cool to make it default behavior
   // However, it'll be a breaking change
   // For now it's just { params: {}, query: {} } if `params/query` is empty
-  // it('Takes `params` & `query` directly from `clock`', async () => {
-  //   const clock = createEvent<{
-  //     params: { foo: string };
-  //     query: { baz: string };
-  //   }>();
-  //   const route = createRoute<{ foo: string }>();
-  //
-  //   redirect({
-  //     clock,
-  //     route,
-  //   });
-  //
-  //   const scope = fork();
-  //   await allSettled(clock, {
-  //     scope,
-  //     params: {
-  //       params: { foo: 'bar' },
-  //       query: { baz: 'test' },
-  //     },
-  //   });
-  //
-  //   expect(scope.getState(route.$isOpened)).toBeTruthy();
-  //   expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
-  //   expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
-  // });
+  it.skip('Takes `params` & `query` directly from `clock`', async () => {
+    const clock = createEvent<{
+      params: { foo: string };
+      query: { baz: string };
+    }>();
+    const route = createRoute<{ foo: string }>();
+
+    redirect({
+      clock,
+      route,
+    });
+
+    const scope = fork();
+    await allSettled(clock, {
+      scope,
+      params: {
+        params: { foo: 'bar' },
+        query: { baz: 'test' },
+      },
+    });
+
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
+  });
 
   it('Object-like `params` & `query`', async () => {
     const clock = createEvent();
