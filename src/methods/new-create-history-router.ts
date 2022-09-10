@@ -301,8 +301,9 @@ export function createHistoryRouter({
     });
 
     sample({
-      clock: recalculated.map(({ matching }) => matching.length > 0),
-      filter: notFoundRoute.$isOpened,
+      clock: matchingRecalculated,
+      source: notFoundRoute.$isOpened,
+      filter: (isOpened, matching) => isOpened && matching.length > 0,
       target: notFoundRoute.closed,
     });
   }
