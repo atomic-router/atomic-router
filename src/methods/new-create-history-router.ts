@@ -18,6 +18,8 @@ import {
   historyForwardFx,
   historyPushFx,
 } from '../utils/history-effects';
+import { debug } from 'patronum';
+import { not } from '../utils/logic';
 
 export function createHistoryRouter({
   base,
@@ -49,11 +51,11 @@ export function createHistoryRouter({
   const recalculated = createEvent<{
     path: string;
     query: RouteQuery;
-    opened: RecalculationResult<any>[];
-    closed: RecalculationResult<any>[];
+    matching: RecalculationResult<any>[];
+    mismatching: RecalculationResult<any>[];
   }>();
-  const routesOpened = createEvent<RecalculationResult<any>[]>();
-  const routesClosed = createEvent<RecalculationResult<any>[]>();
+  const routesMatched = createEvent<RecalculationResult<any>[]>();
+  const routesMismatched = createEvent<RecalculationResult<any>[]>();
   const routeNotFound = createEvent();
   const initialized = createEvent<{
     activeRoutes: RouteInstance<any>[];
@@ -134,41 +136,39 @@ export function createHistoryRouter({
   for (const routeObj of remappedRoutes) {
     const routeStateChangeRequested = {
       opened: sample({
-        clock: routesOpened.filterMap(containsCurrentRoute(routeObj)),
-        filter: routeObj.route.$isOpened.map((isOpened) => !isOpened),
+        clock: routesMatched.filterMap(containsCurrentRoute(routeObj)),
+        filter: not(routeObj.route.$isOpened),
       }),
       updated: sample({
-        clock: routesOpened.filterMap(containsCurrentRoute(routeObj)),
+        clock: routesMatched.filterMap(containsCurrentRoute(routeObj)),
         filter: routeObj.route.$isOpened,
       }),
       closed: sample({
-        clock: routesClosed.filterMap(containsCurrentRoute(routeObj)),
+        clock: routesMismatched.filterMap(containsCurrentRoute(routeObj)),
         filter: routeObj.route.$isOpened,
       }),
     };
 
-    // Trigger .updated() for the routes marked as "opened" but already opened
+    // Trigger .updated() for the routes marked as "matched" but already opened
     sample({
       clock: routeStateChangeRequested.updated,
       source: [routeObj.route.$params, routeObj.route.$query],
       // Skip .updated() calls if params & query are the same
       filter: ([params, query], next) =>
         !paramsEqual(params, next.params) || !paramsEqual(query, next.query),
-      fn: (_, payload) => payload!,
+      fn: (_, paramsAndQuery) => paramsAndQuery,
       target: routeObj.route.updated,
     });
 
-    // Trigger .opened() for the routes marked as "opened"
+    // Trigger .opened() for the routes marked as "matched" but not opened yet
     sample({
       clock: routeStateChangeRequested.opened,
       // TODO: Scratch this?
-      filter: $isRouteNavigateInProgress.map(
-        (isOpenedManually) => !isOpenedManually
-      ),
+      filter: not($isRouteNavigateInProgress),
       target: routeObj.route.opened,
     });
 
-    // Trigger .closed() for the routes marked as "closed"
+    // Trigger .closed() for the routes marked as "mismatched" but opened
     sample({
       clock: routeStateChangeRequested.closed,
       target: routeObj.route.closed,
@@ -204,18 +204,15 @@ export function createHistoryRouter({
     target: pushFx,
   });
 
-  $isRouteNavigateInProgress.reset([routesOpened, routesClosed]);
+  $isRouteNavigateInProgress.reset([routesMatched, routesMismatched]);
 
   /// Recalculation
   // Triggered on every history change + once when history instance is set
   sample({
     clock: recalculateTriggered,
     fn({ path, query, hash }) {
-      // WARNING: These arrays are immutable
-      // But, for some reason, if we switch let->const,
-      // Most of the test cases fail
-      let opened = [] as RecalculationResult<any>[];
-      let closed = [] as RecalculationResult<any>[];
+      const matchingRoutes = [] as RecalculationResult<any>[];
+      const mismatchingRoutes = [] as RecalculationResult<any>[];
 
       for (const route of remappedRoutes) {
         // NOTE: Use hash string as well if route.path contains #
@@ -223,10 +220,12 @@ export function createHistoryRouter({
           ? `${path}${hash}`
           : `${path}`;
         const { matches, params } = matchPath({
-          pathCreator: `${route.path}`,
-          actualPath: actualPath,
+          pathCreator: route.path,
+          actualPath,
         });
-        (matches ? opened : closed).push({
+
+        const suitableRoutes = matches ? matchingRoutes : mismatchingRoutes;
+        suitableRoutes.push({
           routeObj: route,
           params,
           query,
@@ -235,23 +234,19 @@ export function createHistoryRouter({
 
       // Checking for routes we need to close
       // Remove all that are marked to be opened
-      for (const idx in closed) {
-        // @ts-expect-error
-        const closedIdx = idx as number;
-        if (
-          opened.some(
-            (obj) => obj.routeObj.route === closed[closedIdx].routeObj.route
-          )
-        ) {
-          // @ts-expect-error
-          closed[closedIdx] = null;
+      mismatchingRoutes.forEach((mismatchedRoute, mismatchedIndex) => {
+        const mismatchedRouteExistsInMatchedList = matchingRoutes.some(
+          (matchedRoute) =>
+            matchedRoute.routeObj.route === mismatchedRoute.routeObj.route
+        );
+        if (mismatchedRouteExistsInMatchedList) {
+          mismatchingRoutes.splice(mismatchedIndex, 1);
         }
-      }
-      closed = closed.filter(Boolean);
+      });
 
       return {
-        opened,
-        closed,
+        matching: matchingRoutes,
+        mismatching: mismatchingRoutes.filter(Boolean),
         path,
         query,
       };
@@ -263,38 +258,32 @@ export function createHistoryRouter({
 
   $query.on(recalculated, (_, { query }) => query);
 
+  const matchingRecalculated = recalculated.map(({ matching }) => matching);
+
   sample({
-    clock: recalculated.map(({ opened }) => opened),
+    clock: matchingRecalculated,
     filter: (routes) => routes.length > 0,
-    target: routesOpened,
+    target: routesMatched,
   });
 
   sample({
-    clock: recalculated.map(({ closed }) => closed),
+    clock: recalculated.map(({ mismatching }) => mismatching),
     filter: (routes) => routes.length > 0,
-    target: routesClosed,
+    target: routesMismatched,
   });
 
-  $activeRoutes.on(recalculated, (_, { opened }) =>
-    opened.map((recheckResult) => recheckResult.routeObj.route)
+  $activeRoutes.on(recalculated, (_, { matching }) =>
+    matching.map((recheckResult) => recheckResult.routeObj.route)
   );
 
   /// Handling 404
   sample({
-    clock: recalculated.map(({ opened }) => opened),
+    clock: matchingRecalculated,
     filter: (routes) => routes.length === 0,
     target: routeNotFound,
   });
 
   if (isRoute(notFoundRoute)) {
-    sample({
-      clock: routeNotFound,
-      source: $query,
-      filter: notFoundRoute.$isOpened.map((isOpened) => !isOpened),
-      fn: (query) => ({ query, params: {} }),
-      target: notFoundRoute.opened,
-    });
-
     sample({
       clock: routeNotFound,
       source: $query,
@@ -304,7 +293,15 @@ export function createHistoryRouter({
     });
 
     sample({
-      clock: recalculated.map(({ opened }) => opened.length > 0),
+      clock: routeNotFound,
+      source: { query: $query, isOpened: notFoundRoute.$isOpened },
+      filter: ({ isOpened }) => !isOpened,
+      fn: ({ query }) => ({ query, params: {} }),
+      target: notFoundRoute.opened,
+    });
+
+    sample({
+      clock: recalculated.map(({ matching }) => matching.length > 0),
       filter: notFoundRoute.$isOpened,
       target: notFoundRoute.closed,
     });
@@ -387,14 +384,14 @@ type RecalculationResult<Params extends RouteParams> = {
 const containsCurrentRoute =
   (routeObj: RouteObject<any>) =>
   (recheckResults: RecalculationResult<any>[]) => {
-    const result = recheckResults.find(
+    const recheck = recheckResults.find(
       (recheckResult) => recheckResult.routeObj.route === routeObj.route
     );
-    if (!result) {
+    if (!recheck) {
       return;
     }
     return {
-      params: result.params,
-      query: result.query,
+      params: recheck.params,
+      query: recheck.query,
     };
   };

@@ -7,4 +7,7 @@ module.exports = {
       diagnostics: false,
     },
   },
+  transform: {
+    '^.+\\.tsx?$': 'babel-jest',
+  },
 };

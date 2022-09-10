@@ -15,11 +15,13 @@ specifiers:
   '@size-limit/preset-small-lib': ^8.0.0
   '@types/history': ^4.7.11
   '@types/jest': ^27.5.0
+  babel-jest: ^28.0.0
   effector: ^22
   history: ^5.3.0
   jest: ^28.1.0
   jest-environment-jsdom: ^28.1.0
   path-to-regexp: ^6.2.0
+  patronum: ^1.12.2
   prettier: ^2.7.1
   rollup: ^2.77.2
   rollup-plugin-dts: ^4.2.2
@@ -47,16 +49,18 @@ devDependencies:
   '@size-limit/preset-small-lib': 8.1.0_size-limit@8.1.0
   '@types/history': 4.7.11
   '@types/jest': 27.5.2
+  babel-jest: 28.1.3_@babel+core@7.19.0
   effector: 22.3.0
   history: 5.3.0
   jest: 28.1.3
   jest-environment-jsdom: 28.1.3
+  patronum: 1.12.2_effector@22.3.0
   prettier: 2.7.1
   rollup: 2.79.0
   rollup-plugin-dts: 4.2.2_ihkqvyh37tzxtjmovjyy2yrv7m
   rollup-plugin-terser: 7.0.2_rollup@2.79.0
   size-limit: 8.1.0
-  ts-jest: 28.0.8_v3rev37ob2crahnvrjq7tmikvy
+  ts-jest: 28.0.8_ph33yxppqfm63ksx5xeap5h7bi
   tslib: 2.4.0
   typescript: 4.8.3
 
@@ -3893,6 +3897,14 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /patronum/1.12.2_effector@22.3.0:
+    resolution: {integrity: sha512-IVp4djypcs5NgIZdMaj1ggRkBUyPddnhMdka3bz4LGs2S/k9AjmhUhKiQYakmUASTmvv5CKWDFxTkm16dO5rhQ==}
+    peerDependencies:
+      effector: ^22.1.2
+    dependencies:
+      effector: 22.3.0
+    dev: true
+
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
@@ -4386,7 +4398,7 @@ packages:
       punycode: 2.1.1
     dev: true
 
-  /ts-jest/28.0.8_v3rev37ob2crahnvrjq7tmikvy:
+  /ts-jest/28.0.8_ph33yxppqfm63ksx5xeap5h7bi:
     resolution: {integrity: sha512-5FaG0lXmRPzApix8oFG8RKjAz4ehtm8yMKOTy5HX3fY6W8kmvOrmcY0hKDElW52FJov+clhUbrKAqofnj4mXTg==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
     hasBin: true
@@ -4408,6 +4420,7 @@ packages:
         optional: true
     dependencies:
       '@babel/core': 7.19.0
+      babel-jest: 28.1.3_@babel+core@7.19.0
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       jest: 28.1.3
