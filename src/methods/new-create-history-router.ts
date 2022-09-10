@@ -18,7 +18,6 @@ import {
   historyForwardFx,
   historyPushFx,
 } from '../utils/history-effects';
-import { debug } from 'patronum';
 import { not } from '../utils/logic';
 
 export function createHistoryRouter({
