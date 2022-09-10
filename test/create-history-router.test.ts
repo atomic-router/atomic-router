@@ -2,11 +2,28 @@
  * @jest-environment jsdom
  */
 import { allSettled, createEvent, fork } from 'effector';
-import { createMemoryHistory } from 'history';
+import { createMemoryHistory, History } from 'history';
 import * as queryString from 'query-string';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, Mock } from 'vitest';
 import { createHistoryRouter } from '../src/methods/new-create-history-router';
 import { createRoute, createRouterControls } from '../src';
+
+function argumentHistory(fn: Mock) {
+  return fn.mock.calls.map(([value]) => value);
+}
+
+function listenHistoryChanges(history: History) {
+  const fn = vi.fn();
+  history.listen((state) =>
+    fn({
+      action: state.action,
+      pathname: state.location.pathname,
+      search: state.location.search,
+      state: state.location.state,
+    })
+  );
+  return fn;
+}
 
 const foo = createRoute();
 const bar = createRoute();
@@ -79,6 +96,43 @@ describe('Initialization', () => {
     expect(scope.getState(first.$query)).toEqual({});
     expect(scope.getState(firstClone.$query)).toEqual({});
     expect(scope.getState(withParams.$query)).toEqual({});
+  });
+
+  it(`Doesn't triggers history again after push`, async () => {
+    const history = createMemoryHistory();
+    const fn = listenHistoryChanges(history);
+    // history.listen((e) => console.log('change', e));
+    history.replace('/foo?bar=baz');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+
+    history.push('/bar?bar=baz2');
+
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "REPLACE",
+          "pathname": "/foo",
+          "search": "?bar=baz",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "?bar=baz",
+          "state": {},
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/bar",
+          "search": "?bar=baz2",
+          "state": {},
+        },
+      ]
+    `);
   });
 });
 
