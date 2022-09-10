@@ -1,4 +1,5 @@
 import { allSettled, createEvent, createStore, fork } from 'effector';
+import { describe, it, expect, vi } from 'vitest';
 import { createRoute, redirect } from '../src';
 
 describe('redirect', () => {
@@ -29,12 +30,12 @@ describe('redirect', () => {
   //     query: { baz: string };
   //   }>();
   //   const route = createRoute<{ foo: string }>();
-
+  //
   //   redirect({
   //     clock,
   //     route,
   //   });
-
+  //
   //   const scope = fork();
   //   await allSettled(clock, {
   //     scope,
@@ -43,7 +44,7 @@ describe('redirect', () => {
   //       query: { baz: 'test' },
   //     },
   //   });
-
+  //
   //   expect(scope.getState(route.$isOpened)).toBeTruthy();
   //   expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
   //   expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
