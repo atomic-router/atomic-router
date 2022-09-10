@@ -10,6 +10,11 @@ export type RouteParamsAndQuery<Params extends RouteParams> = {
   query: RouteQuery;
 };
 
+export interface NavigateParams<Params extends RouteParams>
+  extends RouteParamsAndQuery<Params> {
+  replace?: boolean;
+}
+
 export type RouteInstance<Params extends RouteParams> = {
   $isOpened: Store<boolean>;
   $params: Store<Params>;
@@ -17,7 +22,7 @@ export type RouteInstance<Params extends RouteParams> = {
   opened: Event<RouteParamsAndQuery<Params>>;
   updated: Event<RouteParamsAndQuery<Params>>;
   closed: Event<void>;
-  navigate: Effect<RouteParamsAndQuery<Params>, RouteParamsAndQuery<Params>>;
+  navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
   open: Effect<Params, RouteParamsAndQuery<Params>>;
   kind: typeof Kind.ROUTE;
 };

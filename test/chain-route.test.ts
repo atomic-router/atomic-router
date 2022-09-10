@@ -86,16 +86,17 @@ describe('chainRoute', () => {
       cancelOn,
     });
     const scope = fork();
-    const promise = allSettled(route.navigate, {
+    await allSettled(route.navigate, {
       scope,
       params: {
+        replace: false,
         params: { x: 'param' },
         query: { foo: 'query' },
       },
     });
-    await promise;
     expect(beforeOpenCb).toBeCalledTimes(1);
     expect(beforeOpenCb).toBeCalledWith({
+      replace: false,
       params: { x: 'param' },
       query: { foo: 'query' },
     });
@@ -131,6 +132,7 @@ describe('chainRoute', () => {
     expect(beforeOpenCb).toBeCalledWith({
       params: { x: 'param' },
       query: { foo: 'query' },
+      replace: false,
     });
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
     await allSettled(cancelOn, { scope });

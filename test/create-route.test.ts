@@ -111,6 +111,7 @@ describe('Lifecycle: .opened()', () => {
     expect(cb).toBeCalledWith({
       params: { postId: 'foo' },
       query: { test: 'blah' },
+      replace: false,
     });
   });
 
@@ -159,6 +160,7 @@ describe('Lifecycle: .updated()', () => {
     expect(cb).toBeCalledWith({
       params: { postId: 'bar' },
       query: { test: 'baz' },
+      replace: false,
     });
   });
 });

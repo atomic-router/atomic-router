@@ -11,6 +11,7 @@ import {
   RouteParamsAndQuery,
   RouteQuery,
   RouteInstance,
+  NavigateParams,
   Kind,
 } from '../types';
 
@@ -20,13 +21,14 @@ type CreateRouteParams = {
 
 export function createRoute<Params extends RouteParams = {}>(
   params: CreateRouteParams = {}
-) {
+): RouteInstance<Params> {
   const navigateFx = createEffect<
-    RouteParamsAndQuery<Params>,
-    RouteParamsAndQuery<Params>
-  >(({ params, query }) => ({
+    NavigateParams<Params>,
+    NavigateParams<Params>
+  >(({ params, query, replace = false }) => ({
     params: params || {},
     query: query || {},
+    replace,
   }));
 
   const openFx = attach({

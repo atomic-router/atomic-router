@@ -40,6 +40,7 @@ export function createHistoryRouter({
     route: RouteObject<any>;
     params: RouteParams;
     query: RouteQuery;
+    replace: boolean;
   }>();
   const historyUpdated = createEvent();
   const recalculateTriggered = createEvent<{
@@ -179,10 +180,11 @@ export function createHistoryRouter({
     // Run "Handling route.navigateFx navigation" step
     sample({
       clock: routeObj.route.navigate.doneData,
-      fn: ({ params, query }) => ({
+      fn: ({ params, query, replace }) => ({
         route: routeObj,
         params,
         query,
+        replace: replace ?? false,
       }),
       target: navigateFromRouteTriggered,
     });
@@ -192,13 +194,19 @@ export function createHistoryRouter({
 
   sample({
     clock: navigateFromRouteTriggered,
-    fn({ route, params, query }) {
+    fn({ route, params, query, replace }) {
       const path = buildPath({
         pathCreator: route.path,
         params,
         query,
       });
-      return { path, params, query, method: 'push' as const };
+      const method: 'replace' | 'push' = replace ? 'replace' : 'push';
+      return {
+        path,
+        params,
+        query,
+        method,
+      };
     },
     target: pushFx,
   });

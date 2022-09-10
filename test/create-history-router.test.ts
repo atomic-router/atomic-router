@@ -303,6 +303,36 @@ describe('Router with params.base', () => {
     });
   });
 
+  describe('Navigate', () => {
+    it('Should replace history if replace option passed', async () => {
+      const scope = fork();
+
+      const history = createMemoryHistory({
+        initialEntries: ['/foo', '/bar'],
+      });
+
+      const { index } = history;
+
+      await allSettled(router.setHistory, {
+        scope,
+        params: history,
+      });
+
+      await allSettled(first.navigate, {
+        scope,
+        params: {
+          query: {},
+          params: {},
+          replace: true,
+        },
+      });
+
+      expect(history.index).toBe(index);
+
+      expect(history.location.pathname).toBe('/first');
+    });
+  });
+
   describe('Hash root (/#)', () => {
     const foo = createRoute();
     const bar = createRoute();
