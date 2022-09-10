@@ -3,7 +3,7 @@
  */
 import { allSettled, createEvent, fork } from 'effector';
 import { createMemoryHistory } from 'history';
-import queryString from 'query-string';
+import * as queryString from 'query-string';
 import { describe, it, expect, vi } from 'vitest';
 import { createHistoryRouter } from '../src/methods/new-create-history-router';
 import { createRoute, createRouterControls } from '../src';

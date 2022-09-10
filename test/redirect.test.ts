@@ -1,6 +1,12 @@
 import { allSettled, createEvent, createStore, fork } from 'effector';
 import { describe, it, expect, vi } from 'vitest';
-import { createRoute, redirect } from '../src';
+import { createHistoryRouter, createRoute, redirect } from '../src';
+import { createMemoryHistory } from 'history';
+import { Mock } from 'vitest/dist/browser';
+
+function argumentHistory(fn: Mock) {
+  return fn.mock.calls.map(([value]) => value);
+}
 
 describe('redirect', () => {
   it('Opens `route` on `clock` trigger', async () => {
@@ -19,6 +25,50 @@ describe('redirect', () => {
     expect(scope.getState(route.$isOpened)).toBeTruthy();
     expect(scope.getState(route.$params)).toEqual({});
     expect(scope.getState(route.$query)).toEqual({});
+  });
+
+  it('makes only one record in the history', async () => {
+    const history = createMemoryHistory();
+    history.replace('/');
+    const historyUpdated = vi.fn();
+    history.listen((state) =>
+      historyUpdated({
+        action: state.action,
+        pathname: state.location.pathname,
+        search: state.location.search,
+      })
+    );
+    const foo = createRoute();
+    const bar = createRoute();
+    const clock = createEvent();
+    const router = createHistoryRouter({
+      base: '/#',
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+      ],
+    });
+    redirect({
+      clock,
+      route: foo,
+    });
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(argumentHistory(historyUpdated)).toMatchInlineSnapshot('[]');
+
+    await allSettled(clock, { scope });
+    expect(argumentHistory(historyUpdated)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/",
+          "search": "",
+        },
+      ]
+    `);
   });
 
   // TODO: Would be cool to make it default behavior
