@@ -355,7 +355,7 @@ export const createHistoryRouter = (params: {
   // Triggered on every history change + once when history instance is set
   const recheckFx = attach({
     source: $history,
-    async effect(history) {
+    effect(history) {
       const path = history.location.pathname;
       const hash = history.location.hash;
       const query: RouteQuery = Object.fromEntries(
@@ -374,7 +374,7 @@ export const createHistoryRouter = (params: {
   // Triggered whenever history instance is set
   const subscribeHistoryFx = attach({
     source: $history,
-    async effect(history) {
+    effect(history) {
       let scopedRecheck = recheckFx;
       try {
         // @ts-expect-error
