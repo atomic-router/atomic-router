@@ -46,6 +46,7 @@
     "jest-environment-jsdom": "^28.1.0",
     "patronum": "^1.12.2",
     "prettier": "^2.7.1",
+    "query-string": "^7.1.1",
     "rollup": "^2.77.2",
     "rollup-plugin-dts": "^4.2.2",
     "rollup-plugin-terser": "^7.0.2",

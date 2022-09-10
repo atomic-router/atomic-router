@@ -47,6 +47,11 @@ export type HistoryPushParams = {
 
 export type HistoryBackForwardParams = History;
 
+export type ParamsSerializer = {
+  write: (params: RouteParams) => string;
+  read: (query: string) => RouteParams;
+};
+
 // @ts-expect-error
 export type PathCreator<Params extends RouteParams> = string;
 

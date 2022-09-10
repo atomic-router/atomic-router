@@ -3,6 +3,7 @@ import { attach, createEvent, createStore, sample, scopeBind } from 'effector';
 import { createRouterControls } from './create-router-controls';
 import {
   HistoryPushParams,
+  ParamsSerializer,
   RouteInstance,
   RouteObject,
   RouteParams,
@@ -25,11 +26,13 @@ export function createHistoryRouter({
   routes,
   notFoundRoute,
   hydrate,
+  serialize,
   controls = createRouterControls(),
 }: {
   base?: string;
   routes: UnmappedRouteObject<any>[];
   notFoundRoute?: RouteInstance<any>;
+  serialize?: ParamsSerializer;
   hydrate?: boolean;
   controls?: ReturnType<typeof createRouterControls>;
 }) {
@@ -124,9 +127,9 @@ export function createHistoryRouter({
     fn(history) {
       const path = history.location.pathname;
       const hash = history.location.hash;
-      const query: RouteQuery = Object.fromEntries(
-        new URLSearchParams(history.location.search)
-      );
+      const query: RouteQuery =
+        serialize?.read(history.location.search) ??
+        Object.fromEntries(new URLSearchParams(history.location.search));
       return { path, query, hash };
     },
     target: recalculateTriggered,
@@ -199,6 +202,7 @@ export function createHistoryRouter({
         pathCreator: route.path,
         params,
         query,
+        serialize,
       });
       const method: 'replace' | 'push' = replace ? 'replace' : 'push';
       return {
