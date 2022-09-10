@@ -1,5 +1,6 @@
 import { createEffect, createEvent } from 'effector';
 import { createRoute, chainRoute } from '../src';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('chainRoute', () => {
   it('Creates a chained route', () => {
@@ -11,7 +12,7 @@ describe('chainRoute', () => {
 
   it('Effect in beforeOpen', () => {
     const route = createRoute();
-    const cb = jest.fn((_: any) => {});
+    const cb = vi.fn((_: any) => {});
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
       route,
@@ -25,7 +26,7 @@ describe('chainRoute', () => {
 
   it('attach-like config in beforeOpen', () => {
     const route = createRoute<{ x: string }>();
-    const cb = jest.fn((payload: { param: string; queryParam: string }) => {
+    const cb = vi.fn((payload: { param: string; queryParam: string }) => {
       return payload;
     });
     const fx = createEffect(cb);
@@ -54,7 +55,7 @@ describe('chainRoute', () => {
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
     const cancelOn = createEvent();
-    const beforeOpenCb = jest.fn();
+    const beforeOpenCb = vi.fn();
     beforeOpen.watch(beforeOpenCb);
     const chainedRoute = chainRoute({
       route,
@@ -83,7 +84,7 @@ describe('chainRoute', () => {
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
     const cancelOn = createEvent();
-    const beforeOpenCb = jest.fn();
+    const beforeOpenCb = vi.fn();
     beforeOpen.watch(beforeOpenCb);
     const chainedRoute = chainRoute({
       route,

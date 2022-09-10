@@ -1,5 +1,6 @@
 import { createEvent, createStore } from 'effector';
 import { createRoute, redirect } from '../src';
+import { describe, it, expect } from 'vitest';
 
 describe('redirect', () => {
   it('Opens `route` on `clock` trigger', () => {
