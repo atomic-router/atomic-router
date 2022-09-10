@@ -20,7 +20,6 @@ import {
   historyPushFx,
 } from '../utils/history-effects';
 import { not } from '../utils/logic';
-import { debug } from 'patronum';
 
 export function createHistoryRouter({
   base,
@@ -68,12 +67,7 @@ export function createHistoryRouter({
   }>();
 
   const $path = createStore('');
-  const $query = createStore<RouteQuery>(
-    {},
-    {
-      updateFilter: paramsEqual,
-    }
-  );
+  const $query = createStore<RouteQuery>({});
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
     serialize: 'ignore',
   });
@@ -126,8 +120,6 @@ export function createHistoryRouter({
     clock: $history,
     target: subscribeHistoryFx,
   });
-
-  debug({ trace: true }, pushFx);
 
   sample({
     clock: historyUpdateTriggered,
