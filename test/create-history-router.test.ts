@@ -98,7 +98,7 @@ describe('Initialization', () => {
     expect(scope.getState(withParams.$query)).toEqual({});
   });
 
-  it(`Doesn't triggers history again after push`, async () => {
+  it(`Doesn't trigger history again after push`, async () => {
     const history = createMemoryHistory();
     const fn = listenHistoryChanges(history);
     history.replace('/foo?bar=baz');

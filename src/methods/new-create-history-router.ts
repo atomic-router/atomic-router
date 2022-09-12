@@ -182,12 +182,6 @@ export function createHistoryRouter({
       }),
     };
 
-    // debug({
-    //   [`${routeObj.path}.opened`]: routeStateChangeRequested.opened,
-    //   [`${routeObj.path}.updated`]: routeStateChangeRequested.updated,
-    //   [`${routeObj.path}.closed`]: routeStateChangeRequested.closed,
-    // });
-
     // Trigger .updated() for the routes marked as "matched" but already opened
     sample({
       clock: routeStateChangeRequested.updated,
@@ -371,9 +365,10 @@ export function createHistoryRouter({
   /// Query syncing
   sample({
     clock: $query,
-    source: controls.$query,
-    filter: (queryControl, query) => !paramsEqual(query, queryControl),
-    fn: (_, query) => query,
+    source: { controlsQuery: controls.$query, localQuery: $query },
+    filter: ({ controlsQuery, localQuery }) =>
+      !paramsEqual(controlsQuery, localQuery),
+    fn: ({ localQuery }) => localQuery,
     target: controls.$query,
   });
 
@@ -389,12 +384,11 @@ export function createHistoryRouter({
       const realQuery =
         serialize?.read(realHistory.location.search) ??
         Object.fromEntries(new URLSearchParams(realHistory.location.search));
-      const result =
-        !isNavigateInProgress ||
+      return (
+        isNavigateInProgress ||
         !paramsEqual(query, realQuery) ||
-        !paramsEqual(localQuery, query);
-
-      return result;
+        !paramsEqual(localQuery, query)
+      );
     },
     fn({ path }, query) {
       const qs = serialize?.write(query) ?? new URLSearchParams(query);
