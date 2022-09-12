@@ -1,5 +1,6 @@
 import { createMemoryHistory } from 'history';
 import { allSettled, fork } from 'effector';
+import { describe, it, expect } from 'vitest';
 import { createHistoryRouter, createRoute } from '../src';
 import { describe, it, expect } from 'vitest';
 

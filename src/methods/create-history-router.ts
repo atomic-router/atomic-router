@@ -1,11 +1,11 @@
-import { buildPath, matchPath } from './utils/build-path';
+import { buildPath, matchPath } from '../utils/build-path';
 import { History } from 'history';
 import {
   ParamsSerializer,
   RouteInstance,
   RouteParams,
   RouteQuery,
-} from './types';
+} from '../types';
 import {
   attach,
   createEffect,
@@ -16,8 +16,8 @@ import {
   sample,
   scopeBind,
 } from 'effector';
-import { paramsEqual } from './utils/equals';
-import { isRoute } from './utils/is-route';
+import { paramsEqual } from '../utils/equals';
+import { isRoute } from './is-route';
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -157,62 +157,63 @@ export const createHistoryRouter = (params: {
     }
   );
 
+  type RecalculateParams = {
+    path: string;
+    query: RouteQuery;
+    hash: string;
+  };
+  type RecalculateResult = {
+    opened: RecheckResult<any>[];
+    closed: RecheckResult<any>[];
+  };
+
   // Recalculate opened/closed routes
-  const recalculateFx = createEffect<
-    {
-      path: string;
-      query: RouteQuery;
-      hash: string;
-    },
-    {
-      opened: RecheckResult<any>[];
-      closed: RecheckResult<any>[];
-    }
-  >(({ path, query, hash }) => {
-    let opened = [] as RecheckResult<any>[];
-    let closed = [] as RecheckResult<any>[];
+  const recalculateFx = createEffect<RecalculateParams, RecalculateResult>(
+    ({ path, query, hash }) => {
+      let opened = [] as RecheckResult<any>[];
+      let closed = [] as RecheckResult<any>[];
 
-    for (const route of remappedRoutes) {
-      // NOTE: Use hash string as well if route.path contains #
-      const actualPath = route.path.includes('#')
-        ? `${path}${hash}`
-        : `${path}`;
-      const { matches, params } = matchPath({
-        pathCreator: `${route.path}`,
-        actualPath: actualPath,
-      });
-      (matches ? opened : closed).push({
-        route,
-        params,
-        query,
-      });
-    }
-
-    // Checking for routes we need to close
-    // Remove all that are marked to be opened
-    for (const idx in closed) {
-      // @ts-expect-error
-      const closedIdx = idx as number;
-      if (
-        opened.some((obj) => obj.route.route === closed[closedIdx].route.route)
-      ) {
-        // @ts-expect-error
-        closed[closedIdx] = null;
+      for (const route of remappedRoutes) {
+        // NOTE: Use hash string as well if route.path contains #
+        const actualPath = route.path.includes('#')
+          ? `${path}${hash}`
+          : `${path}`;
+        const { matches, params } = matchPath({
+          pathCreator: `${route.path}`,
+          actualPath: actualPath,
+        });
+        (matches ? opened : closed).push({
+          route,
+          params,
+          query,
+        });
       }
+
+      // Checking for routes we need to close
+      // Remove all that are marked to be opened
+      for (const idx in closed) {
+        // @ts-expect-error
+        const closedIdx = idx as number;
+        if (
+          opened.some(
+            (obj) => obj.route.route === closed[closedIdx].route.route
+          )
+        ) {
+          // @ts-expect-error
+          closed[closedIdx] = null;
+        }
+      }
+      closed = closed.filter(Boolean);
+
+      return { opened, closed };
     }
-    closed = closed.filter(Boolean);
+  );
 
-    return {
-      opened,
-      closed,
-    };
-  });
+  $path.on(recalculateFx.done, (_, { params: { path } }) => path);
 
-  $path.on(recalculateFx.done, (_prev, { params: { path } }) => path);
+  $query.on(recalculateFx.done, (_, { params: { query } }) => query);
 
-  $query.on(recalculateFx.done, (_prev, { params: { query } }) => query);
-
-  $activeRoutes.on(recalculateFx.doneData, (_prev, { opened }) =>
+  $activeRoutes.on(recalculateFx.doneData, (_, { opened }) =>
     opened.map((recheckResult) => recheckResult.route.route)
   );
 
@@ -253,16 +254,18 @@ export const createHistoryRouter = (params: {
       target: openedFx,
     });
 
-    const containsCurrentRoute = (recheckResults: RecheckResult<any>[]) => {
-      const result = recheckResults.find(
+    const containsCurrentRoute = <T extends RouteParams>(
+      recheckResults: RecheckResult<T>[]
+    ) => {
+      const foundRoute = recheckResults.find(
         (recheckResult) => recheckResult.route.route === routeObj.route
       );
-      if (!result) {
+      if (!foundRoute) {
         return;
       }
       return {
-        params: result.params,
-        query: result.query,
+        params: foundRoute.params,
+        query: foundRoute.query,
       };
     };
 
@@ -296,7 +299,7 @@ export const createHistoryRouter = (params: {
         clock: updated,
         source: [routeObj.route.$params, routeObj.route.$query],
         // Skip .updated() calls if params & query are the same
-        filter: ([params, query], next) => {
+        filter([params, query], next) {
           return (
             !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
           );
@@ -362,23 +365,15 @@ export const createHistoryRouter = (params: {
   // Takes current path from history and triggers recalculate
   // Triggered on every history change + once when history instance is set
   const recheckFx = attach({
-    source: {
-      history: $history,
-    },
-    effect({ history }) {
-      const deserializedQuery = serialize?.read
-        ? serialize.read(history.location.search)
-        : Object.fromEntries(new URLSearchParams(history.location.search));
-      const [path, query, hash] = [
-        history.location.pathname,
-        deserializedQuery as RouteQuery,
-        history.location.hash,
-      ];
-      return {
-        path,
-        query,
-        hash,
-      };
+    source: $history,
+    effect(history) {
+      const path = history.location.pathname;
+      const hash = history.location.hash;
+      const query: RouteQuery =
+        serialize?.read(history.location.search) ??
+        Object.fromEntries(new URLSearchParams(history.location.search));
+
+      return { path, query, hash };
     },
   });
 
@@ -389,10 +384,8 @@ export const createHistoryRouter = (params: {
 
   // Triggered whenever history instance is set
   const subscribeHistoryFx = attach({
-    source: {
-      history: $history,
-    },
-    effect({ history }) {
+    source: $history,
+    effect(history) {
       let scopedRecheck = recheckFx;
       try {
         // @ts-expect-error

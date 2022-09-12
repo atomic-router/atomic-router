@@ -19,9 +19,9 @@ const getComparablePath = (path: string) => {
 
 // NOTE: path-to-regexp treats ":" in "https://" as param start
 // So we escape it
-const normalizePathCreator = (pathCreator: string) => {
+function normalizePathCreator(pathCreator: string) {
   return pathCreator.replace('://', '\\://');
-};
+}
 
 type BuildPathParams<Params extends RouteParams> = {
   pathCreator: PathCreator<Params>;
@@ -36,9 +36,8 @@ export function buildPath<Params extends RouteParams>({
   serialize,
 }: BuildPathParams<Params>) {
   const pathname = compile(pathCreator)(params);
-  const serializedParams = serialize?.write
-    ? serialize.write(query)
-    : new URLSearchParams(query as Record<string, string>);
+  const serializedParams =
+    serialize?.write(query) ?? new URLSearchParams(query);
   const qs = Object.keys(query).length ? `?${serializedParams}` : '';
   const url = `${pathname}${qs}`;
   return url;

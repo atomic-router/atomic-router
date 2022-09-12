@@ -1,3 +1,4 @@
+import { History } from 'history';
 import { Effect, Event, Store } from 'effector';
 
 export type RouteParams = Record<string, any>;
@@ -9,6 +10,11 @@ export type RouteParamsAndQuery<Params extends RouteParams> = {
   query: RouteQuery;
 };
 
+export interface NavigateParams<Params extends RouteParams>
+  extends RouteParamsAndQuery<Params> {
+  replace?: boolean;
+}
+
 export type RouteInstance<Params extends RouteParams> = {
   $isOpened: Store<boolean>;
   $params: Store<Params>;
@@ -16,19 +22,34 @@ export type RouteInstance<Params extends RouteParams> = {
   opened: Event<RouteParamsAndQuery<Params>>;
   updated: Event<RouteParamsAndQuery<Params>>;
   closed: Event<void>;
-  /** @deprecated Will be removed in 0.6.0. Use `route.closed` instead */
-  left: Event<void>;
-  navigate: Effect<
-    RouteParamsAndQuery<Params> & { replace?: boolean },
-    RouteParamsAndQuery<Params>
-  >;
+  navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
   open: Effect<Params, RouteParamsAndQuery<Params>>;
   kind: typeof Kind.ROUTE;
 };
 
+export type RouteObject<Params extends RouteParams> = {
+  route: RouteInstance<Params>;
+  path: string;
+};
+
+export type UnmappedRouteObject<Params extends RouteParams> = {
+  route: RouteInstance<Params> | RouteInstance<Params>[];
+  path: string;
+};
+
+export type HistoryPushParams = {
+  history: History;
+  path: string;
+  params: RouteParams;
+  query: RouteQuery;
+  method: 'replace' | 'push';
+};
+
+export type HistoryBackForwardParams = History;
+
 export type ParamsSerializer = {
-  write?: (params: RouteParams) => string;
-  read?: (query: string) => RouteParams;
+  write: (params: RouteParams) => string;
+  read: (query: string) => RouteParams;
 };
 
 // @ts-expect-error

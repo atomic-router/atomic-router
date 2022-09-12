@@ -12,6 +12,7 @@ Simple routing implementation that provides abstraction layer instead of inline 
 ### Read the docs: [atomic-router.github.io](https://atomic-router.github.io)
 
 ### Get view-library bindings
+
 - ⚛️ [**React**](https://github.com/atomic-router/react)
 - 🍃 [**Forest**](https://github.com/atomic-router/forest)
 - [**Solid**](https://github.com/atomic-router/solid)
@@ -161,7 +162,7 @@ route.$query; // Store<{ [key]: string }>
 // Events (only watch 'em)
 route.opened; // Event<{ params: RouteParams, query: RouteQuery }>
 route.updated; // Event<{ params: RouteParams, query: RouteQuery }>
-route.left; // Event<{ params: RouteParams, query: RouteQuery }>
+route.closed; // Event<{ params: RouteParams, query: RouteQuery }>
 
 // Effects
 route.open; // Effect<RouteParams>

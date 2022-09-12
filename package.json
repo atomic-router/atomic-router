@@ -17,9 +17,9 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "build": "rollup -c",
-    "prepare": "yarn build",
-    "lint": "yarn prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
-    "format": "yarn prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
+    "prepare": "pnpm build",
+    "lint": "prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
+    "format": "prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
   },
   "peerDependencies": {
     "effector": "^22",
@@ -38,12 +38,14 @@
     "@rollup/plugin-commonjs": "^22.0.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@size-limit/preset-small-lib": "^8.0.0",
-    "@vitest/coverage-c8": "^0.22.1",
-    "@vitest/ui": "^0.22.1",
+    "@types/history": "^4.7.11",
+    "@vitest/coverage-c8": "^0.23.2",
+    "@vitest/ui": "^0.23.2",
     "c8": "^7.12.0",
     "effector": "^22",
     "history": "^5.3.0",
     "jsdom": "^20.0.0",
+    "patronum": "^1.12.2",
     "prettier": "^2.7.1",
     "query-string": "^7.1.1",
     "rollup": "^2.77.2",
@@ -52,7 +54,7 @@
     "size-limit": "^8.0.0",
     "tslib": "^2.4.0",
     "typescript": "^4.6.3",
-    "vitest": "^0.22.1"
+    "vitest": "^0.23.2"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0"
@@ -78,5 +80,6 @@
       "path": "dist/atomic-router.cjs.js",
       "limit": "10 kB"
     }
-  ]
+  ],
+  "packageManager": "pnpm@7.9.3"
 }

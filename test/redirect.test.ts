@@ -1,9 +1,15 @@
-import { createEvent, createStore } from 'effector';
-import { createRoute, redirect } from '../src';
-import { describe, it, expect } from 'vitest';
+import { allSettled, createEvent, createStore, fork } from 'effector';
+import { describe, it, expect, vi } from 'vitest';
+import { createHistoryRouter, createRoute, redirect } from '../src';
+import { createMemoryHistory } from 'history';
+import { Mock } from 'vitest/dist/browser';
+
+function argumentHistory(fn: Mock) {
+  return fn.mock.calls.map(([value]) => value);
+}
 
 describe('redirect', () => {
-  it('Opens `route` on `clock` trigger', () => {
+  it('Opens `route` on `clock` trigger', async () => {
     const clock = createEvent();
     const route = createRoute();
 
@@ -12,41 +18,89 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
 
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({});
-    expect(route.$query.getState()).toEqual({});
+    await allSettled(clock, { scope });
+
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({});
+    expect(scope.getState(route.$query)).toEqual({});
+  });
+
+  it('makes only one record in the history', async () => {
+    const history = createMemoryHistory();
+    history.replace('/');
+    const historyUpdated = vi.fn();
+    history.listen((state) =>
+      historyUpdated({
+        action: state.action,
+        pathname: state.location.pathname,
+        search: state.location.search,
+      })
+    );
+    const foo = createRoute();
+    const bar = createRoute();
+    const clock = createEvent();
+    const router = createHistoryRouter({
+      base: '/#',
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+      ],
+    });
+    redirect({
+      clock,
+      route: foo,
+    });
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(argumentHistory(historyUpdated)).toMatchInlineSnapshot('[]');
+
+    await allSettled(clock, { scope });
+    expect(argumentHistory(historyUpdated)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/",
+          "search": "",
+        },
+      ]
+    `);
   });
 
   // TODO: Would be cool to make it default behavior
   // However, it'll be a breaking change
   // For now it's just { params: {}, query: {} } if `params/query` is empty
-  // it('Takes `params` & `query` directly from `clock`', async () => {
-  //   const clock = createEvent<{
-  //     params: { foo: string };
-  //     query: { baz: string };
-  //   }>();
-  //   const route = createRoute<{ foo: string }>();
+  it.skip('Takes `params` & `query` directly from `clock`', async () => {
+    const clock = createEvent<{
+      params: { foo: string };
+      query: { baz: string };
+    }>();
+    const route = createRoute<{ foo: string }>();
 
-  //   redirect({
-  //     clock,
-  //     route,
-  //   });
+    redirect({
+      clock,
+      route,
+    });
 
-  //   clock({
-  //     params: { foo: 'bar' },
-  //     query: { baz: 'test' },
-  //   });
+    const scope = fork();
+    await allSettled(clock, {
+      scope,
+      params: {
+        params: { foo: 'bar' },
+        query: { baz: 'test' },
+      },
+    });
 
-  //   await sleep(0);
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
+  });
 
-  //   expect(route.$isOpened.getState()).toBeTruthy();
-  //   expect(route.$params.getState()).toEqual({ foo: 'bar' });
-  //   expect(route.$query.getState()).toEqual({ baz: 'test' });
-  // });
-
-  it('Object-like `params` & `query`', () => {
+  it('Object-like `params` & `query`', async () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
@@ -57,14 +111,15 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
+    await allSettled(clock, { scope });
 
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
   });
 
-  it('Store-like `params` & `query`', () => {
+  it('Store-like `params` & `query`', async () => {
     const clock = createEvent();
     const route = createRoute<{ foo: string }>();
 
@@ -75,14 +130,15 @@ describe('redirect', () => {
       route,
     });
 
-    clock();
+    const scope = fork();
+    await allSettled(clock, { scope });
 
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({ baz: 'test' });
   });
 
-  it('Function-like `params` & `query`', () => {
+  it('Function-like `params` & `query`', async () => {
     const clock = createEvent<string>();
     const route = createRoute<{ foo: string }>();
 
@@ -93,10 +149,13 @@ describe('redirect', () => {
       route,
     });
 
-    clock('bar');
+    const scope = fork();
+    await allSettled(clock, { scope, params: 'bar' });
 
-    expect(route.$isOpened.getState()).toBeTruthy();
-    expect(route.$params.getState()).toEqual({ foo: 'bar' });
-    expect(route.$query.getState()).toEqual({ baz: 'bar-test' });
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(route.$params)).toEqual({ foo: 'bar' });
+    expect(scope.getState(route.$query)).toEqual({
+      baz: 'bar-test',
+    });
   });
 });
