@@ -8,14 +8,7 @@ export const createRouterControls = () => {
     $query: createStore<RouteQuery>(
       {},
       {
-        updateFilter: (update, current) => {
-          console.log('controls $query updateFilter', {
-            current,
-            update,
-            notEqual: !paramsEqual(current, update),
-          });
-          return !paramsEqual(current, update);
-        },
+        updateFilter: (update, current) => !paramsEqual(current, update),
       }
     ),
     back: createEvent(),
