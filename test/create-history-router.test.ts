@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { allSettled, createEvent, fork } from 'effector';
+import { allSettled, createEvent, fork, sample } from 'effector';
 import { createMemoryHistory, History } from 'history';
 import * as queryString from 'query-string';
 import { describe, it, expect, vi, Mock } from 'vitest';
@@ -102,7 +102,6 @@ describe('Initialization', () => {
     const history = createMemoryHistory();
     const fn = listenHistoryChanges(history);
     history.replace('/foo?bar=baz');
-    // history.listen((e) => console.log('change', e));
     const scope = fork();
     await allSettled(router.setHistory, {
       scope,
@@ -111,6 +110,7 @@ describe('Initialization', () => {
 
     history.push('/bar?bar=baz2');
 
+    expect(fn).toBeCalledTimes(2);
     expect(argumentHistory(fn)).toMatchInlineSnapshot(`
       [
         {
@@ -227,6 +227,74 @@ describe('History', () => {
     expect(scope.getState(bar.$isOpened)).toBeFalsy();
     expect(scope.getState(foo.$isOpened)).toBeTruthy();
   });
+
+  it(`Doesn't trigger history again after back and forward`, async () => {
+    const history = createMemoryHistory();
+    const fn = listenHistoryChanges(history);
+    history.push('/foo');
+    history.push('/bar');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(fn).toBeCalledTimes(2);
+
+    await allSettled(router.back, { scope });
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/bar",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "POP",
+          "pathname": "/foo",
+          "search": "",
+          "state": null,
+        },
+      ]
+    `);
+
+    await allSettled(router.forward, { scope });
+    expect(fn).toBeCalledTimes(4);
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/bar",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "POP",
+          "pathname": "/foo",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "POP",
+          "pathname": "/bar",
+          "search": "",
+          "state": null,
+        },
+      ]
+    `);
+  });
 });
 
 describe('Query', () => {
@@ -264,6 +332,43 @@ describe('Query', () => {
       bar: 'baz',
     });
   });
+
+  it(`Doesn't trigger history again after back and forward`, async () => {
+    const history = createMemoryHistory();
+    const fn = listenHistoryChanges(history);
+    history.push('/foo?param=test');
+    const changed = createEvent<Record<string, string>>();
+    router.$query.on(changed, (_, next) => next);
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(fn).toBeCalledTimes(1);
+
+    await allSettled(changed, {
+      scope,
+      params: { foo: 'bar', bar: 'baz' },
+    });
+    expect(scope.getState(router.$query)).toEqual({ foo: 'bar', bar: 'baz' });
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "?param=test",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "?foo=bar&bar=baz",
+          "state": {},
+        },
+      ]
+    `);
+  });
 });
 
 describe('Hash mode', () => {
@@ -281,30 +386,31 @@ describe('Hash mode', () => {
   });
 });
 
-describe('Other checks', () => {
+describe('Custom ser/de for query string', () => {
+  const router = createHistoryRouter({
+    routes: [
+      { route: foo, path: '/foo' },
+      { route: bar, path: '/bar' },
+      { route: first, path: '/first' },
+      { route: firstClone, path: '/first' },
+      { route: withParams, path: '/posts/:postId' },
+      { route: hashed, path: '/test/#/swap/:token' },
+    ],
+    serialize: {
+      read: (query) =>
+        queryString.parse(query, {
+          arrayFormat: 'separator',
+          arrayFormatSeparator: '|',
+        }),
+      write: (params) =>
+        queryString.stringify(params, {
+          arrayFormat: 'separator',
+          arrayFormatSeparator: '|',
+        }),
+    },
+  });
+
   it('Supports custom serde for query strings', async () => {
-    const router = createHistoryRouter({
-      routes: [
-        { route: foo, path: '/foo' },
-        { route: bar, path: '/bar' },
-        { route: first, path: '/first' },
-        { route: firstClone, path: '/first' },
-        { route: withParams, path: '/posts/:postId' },
-        { route: hashed, path: '/test/#/swap/:token' },
-      ],
-      serialize: {
-        read: (query) =>
-          queryString.parse(query, {
-            arrayFormat: 'separator',
-            arrayFormatSeparator: '|',
-          }),
-        write: (params) =>
-          queryString.stringify(params, {
-            arrayFormat: 'separator',
-            arrayFormatSeparator: '|',
-          }),
-      },
-    });
     const updated = vi.fn();
     withParams.updated.watch(updated);
     const history = createMemoryHistory();
@@ -314,9 +420,11 @@ describe('Other checks', () => {
       scope,
       params: history,
     });
+
     history.push('/posts/foo');
     history.push('/posts/bar?baz=1234|4321');
     await void 'sleep';
+
     expect(updated).toBeCalledTimes(1);
     expect(updated).toBeCalledWith({
       params: { postId: 'bar' },
@@ -324,6 +432,44 @@ describe('Other checks', () => {
     });
   });
 
+  it(`Doesn't trigger history again after back and forward`, async () => {
+    const history = createMemoryHistory();
+    const fn = listenHistoryChanges(history);
+    history.push('/');
+    const changed = createEvent<Record<string, (string | number)[]>>();
+    sample({ clock: changed, target: router.$query });
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(fn).toBeCalledTimes(1);
+
+    await allSettled(changed, {
+      scope,
+      params: { foo: [1, 2, 3, 4], bar: ['a', 'b', 'c'] },
+    });
+    expect(fn).toBeCalledTimes(2);
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/",
+          "search": "?bar=a|b|c&foo=1|2|3|4",
+          "state": {},
+        },
+      ]
+    `);
+  });
+});
+
+describe('Other checks', () => {
   it('Supports multiple routes opened at the same time', async () => {
     const history = createMemoryHistory();
     history.push('/first');
@@ -425,6 +571,49 @@ describe('Router with params.base', () => {
 
       expect(history.location.pathname).toBe('/first');
     });
+  });
+
+  it('Really replaces history item', async () => {
+    const history = createMemoryHistory();
+    const fn = listenHistoryChanges(history);
+    history.push('/foo');
+    history.push('/bar');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(fn).toBeCalledTimes(2);
+    expect(history.index).toBe(2);
+
+    await allSettled(first.navigate, {
+      scope,
+      params: { query: {}, params: {}, replace: true },
+    });
+    expect(fn).toBeCalledTimes(3);
+    expect(history.index).toBe(2); // Index is not increased
+    expect(argumentHistory(fn)).toMatchInlineSnapshot(`
+      [
+        {
+          "action": "PUSH",
+          "pathname": "/foo",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "PUSH",
+          "pathname": "/bar",
+          "search": "",
+          "state": null,
+        },
+        {
+          "action": "REPLACE",
+          "pathname": "/first",
+          "search": "",
+          "state": {},
+        },
+      ]
+    `);
   });
 
   describe('Hash root (/#)', () => {
