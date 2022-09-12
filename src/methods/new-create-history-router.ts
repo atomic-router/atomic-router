@@ -116,11 +116,12 @@ export function createHistoryRouter({
       ? [historyUpdated]
       : [historyUpdated, subscribeHistoryFx.done],
     source: $history,
+    filter: Boolean,
     fn: (history) => ({
-      path: history?.location.pathname ?? '',
+      path: history.location.pathname,
       query:
-        serialize?.read(history?.location.search ?? '') ??
-        Object.fromEntries(new URLSearchParams(history?.location.search)),
+        serialize?.read(history.location.search) ??
+        Object.fromEntries(new URLSearchParams(history.location.search)),
     }),
   });
 
@@ -148,12 +149,13 @@ export function createHistoryRouter({
   sample({
     clock: historyUpdateTriggered,
     source: $history,
+    filter: Boolean,
     fn(history) {
-      const path = history.location.pathname;
-      const hash = history.location.hash;
+      const path = history?.location.pathname;
+      const hash = history?.location.hash;
       const query: RouteQuery =
-        serialize?.read(history.location.search) ??
-        Object.fromEntries(new URLSearchParams(history.location.search));
+        serialize?.read(history?.location.search) ??
+        Object.fromEntries(new URLSearchParams(history?.location.search));
       return { path, query, hash };
     },
     target: recalculateTriggered,
@@ -382,8 +384,10 @@ export function createHistoryRouter({
     },
     filter: ({ localQuery, isNavigateInProgress, realHistory }, query) => {
       const realQuery =
-        serialize?.read(realHistory.location.search) ??
-        Object.fromEntries(new URLSearchParams(realHistory.location.search));
+        serialize?.read(realHistory?.location.search ?? '') ??
+        Object.fromEntries(
+          new URLSearchParams(realHistory?.location.search ?? '')
+        );
       return (
         isNavigateInProgress ||
         !paramsEqual(query, realQuery) ||
