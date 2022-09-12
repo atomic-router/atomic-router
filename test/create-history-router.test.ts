@@ -16,23 +16,6 @@ import { describe, it, expect, vi, Mock } from 'vitest';
 import { createHistoryRouter } from '../src/methods/new-create-history-router';
 import { createRoute, createRouterControls } from '../src';
 
-function argumentHistory(fn: Mock) {
-  return fn.mock.calls.map(([value]) => value);
-}
-
-function listenHistoryChanges(history: History) {
-  const fn = vi.fn();
-  history.listen((state) =>
-    fn({
-      action: state.action,
-      pathname: state.location.pathname,
-      search: state.location.search,
-      state: state.location.state,
-    })
-  );
-  return fn;
-}
-
 const foo = createRoute();
 const bar = createRoute();
 const first = createRoute();
@@ -140,8 +123,7 @@ describe('Initialization', () => {
 
 describe('Lifecycle', () => {
   it('Triggers .opened() with params and query', async () => {
-    const opened = vi.fn();
-    withParams.opened.watch(opened);
+    const opened = watch(withParams.opened);
     const history = createMemoryHistory();
     history.push('/');
     const scope = fork();
@@ -157,8 +139,7 @@ describe('Lifecycle', () => {
   });
 
   it('Ensures .opened() is called only once per open', async () => {
-    const opened = vi.fn();
-    withParams.opened.watch(opened);
+    const opened = watch(withParams.opened);
     const history = createMemoryHistory();
     history.push('/foo');
     const scope = fork();
@@ -172,8 +153,7 @@ describe('Lifecycle', () => {
   });
 
   it('Triggers .updated() when the same route is pushed', async () => {
-    const updated = vi.fn();
-    withParams.updated.watch(updated);
+    const updated = watch(withParams.updated);
     const history = createMemoryHistory();
     history.push('/');
     const scope = fork();
@@ -191,8 +171,7 @@ describe('Lifecycle', () => {
   });
 
   it('Triggers .closed() when the route is closed', async () => {
-    const closed = vi.fn();
-    bar.closed.watch(closed);
+    const closed = watch(bar.closed);
     const history = createMemoryHistory();
     history.push('/bar');
     const scope = fork();
@@ -419,8 +398,7 @@ describe('Custom ser/de for query string', () => {
   });
 
   it('Supports custom serde for query strings', async () => {
-    const updated = vi.fn();
-    withParams.updated.watch(updated);
+    const updated = watch(withParams.updated);
     const history = createMemoryHistory();
     history.push('/');
     const scope = fork();
@@ -492,10 +470,8 @@ describe('Other checks', () => {
 
   it('If the same route is passed twice, trigger it only once', async () => {
     const testRoute = createRoute();
-    const opened = vi.fn();
-    testRoute.opened.watch(opened);
-    const updated = vi.fn();
-    testRoute.updated.watch(updated);
+    const opened = watch(testRoute.opened);
+    const updated = watch(testRoute.updated);
     const history = createMemoryHistory();
     history.push('/test/foo');
     const router = createHistoryRouter({
@@ -770,5 +746,22 @@ describe('Hydrate', () => {
 function watch<T>(unit: Store<T> | Event<T>): Mock {
   const fn = vi.fn();
   unit.watch(fn);
+  return fn;
+}
+
+function argumentHistory(fn: Mock) {
+  return fn.mock.calls.map(([value]) => value);
+}
+
+function listenHistoryChanges(history: History) {
+  const fn = vi.fn();
+  history.listen((state) =>
+    fn({
+      action: state.action,
+      pathname: state.location.pathname,
+      search: state.location.search,
+      state: state.location.state,
+    })
+  );
   return fn;
 }
