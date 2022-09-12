@@ -1,7 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-import { allSettled, createEvent, fork, sample } from 'effector';
+import {
+  allSettled,
+  createEvent,
+  Event,
+  fork,
+  sample,
+  serialize,
+  Store,
+} from 'effector';
 import { createMemoryHistory, History } from 'history';
 import * as queryString from 'query-string';
 import { describe, it, expect, vi, Mock } from 'vitest';
@@ -691,3 +699,76 @@ describe('Router with params.base', () => {
     });
   });
 });
+
+describe('Hydrate', () => {
+  it('Should creates without errors', async () => {
+    expect(() => {
+      const router = createHistoryRouter({
+        routes: [
+          { route: foo, path: '/foo' },
+          { route: bar, path: '/bar' },
+          { route: withParams, path: '/posts/:postId' },
+        ],
+        controls,
+        hydrate: true,
+      });
+    }).not.toThrow();
+  });
+
+  it('Should not run route logic after hydration', async () => {
+    const url = '/posts/123?foo=bar';
+    const serverRouter = createHistoryRouter({
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+        { route: withParams, path: '/posts/:postId' },
+      ],
+      controls,
+    });
+
+    const serverHistory = createMemoryHistory();
+    serverHistory.push(url);
+    const serverScope = fork();
+    const withParamsOpenedFn = watch(withParams.opened);
+    const withParamsUpdatedFx = watch(withParams.updated);
+    const withParamsClosedFx = watch(withParams.closed);
+
+    await allSettled(serverRouter.setHistory, {
+      scope: serverScope,
+      params: serverHistory,
+    });
+    expect(withParamsOpenedFn).toBeCalled();
+    expect(withParamsUpdatedFx).not.toBeCalled();
+    expect(withParamsClosedFx).not.toBeCalled();
+
+    const data = serialize(serverScope);
+    const clientScope = fork({ values: data });
+    const clientRouter = createHistoryRouter({
+      routes: [
+        { route: foo, path: '/foo' },
+        { route: bar, path: '/bar' },
+        { route: withParams, path: '/posts/:postId' },
+      ],
+      controls,
+      hydrate: true,
+    });
+    const clientHistory = createMemoryHistory();
+    clientHistory.push(url);
+    await allSettled(clientRouter.setHistory, {
+      scope: clientScope,
+      params: clientHistory,
+    });
+    expect(withParamsOpenedFn).toBeCalledTimes(1);
+    expect(withParamsUpdatedFx).not.toBeCalled();
+    expect(withParamsClosedFx).not.toBeCalled();
+    expect(clientScope.getState(withParams.$isOpened)).toBe(true);
+    expect(clientScope.getState(withParams.$query)).toEqual({ foo: 'bar' });
+    expect(clientScope.getState(withParams.$params)).toEqual({ postId: '123' });
+  });
+});
+
+function watch<T>(unit: Store<T> | Event<T>): Mock {
+  const fn = vi.fn();
+  unit.watch(fn);
+  return fn;
+}
