@@ -19,12 +19,13 @@ type CreateRouteParams = {
   filter?: Store<boolean>;
 };
 
-export function createRoute<Params extends RouteParams = {}>(
-  params: CreateRouteParams = {}
-): RouteInstance<Params> {
+export function createRoute<
+  Params extends RouteParams = {},
+  Query extends RouteQuery = {}
+>(params: CreateRouteParams = {}): RouteInstance<Params, Query> {
   const navigateFx = createEffect<
-    NavigateParams<Params>,
-    NavigateParams<Params>
+    NavigateParams<Params, Query>,
+    NavigateParams<Params, Query>
   >(({ params, query, replace = false }) => ({
     params: params || {},
     query: query || {},
@@ -35,16 +36,16 @@ export function createRoute<Params extends RouteParams = {}>(
     effect: navigateFx,
     mapParams: (params: Params) => ({
       params: params || ({} as Params),
-      query: {} as RouteQuery,
+      query: {} as Query,
     }),
   });
 
   const $isOpened = createStore<boolean>(false);
   const $params = createStore<Params>({} as Params);
-  const $query = createStore<RouteQuery>({});
+  const $query = createStore<Query>({} as Query);
 
-  const opened = createEvent<RouteParamsAndQuery<Params>>();
-  const updated = createEvent<RouteParamsAndQuery<Params>>();
+  const opened = createEvent<RouteParamsAndQuery<Params, Query>>();
+  const updated = createEvent<RouteParamsAndQuery<Params, Query>>();
   const closed = createEvent<void>();
 
   $isOpened.on(opened, () => true).on(closed, () => false);
@@ -80,7 +81,7 @@ export function createRoute<Params extends RouteParams = {}>(
   //   });
   // }
 
-  const instance: RouteInstance<Params> = {
+  const instance: RouteInstance<Params, Query> = {
     $isOpened,
     $params,
     $query,

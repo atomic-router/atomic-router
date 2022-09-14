@@ -5,35 +5,52 @@ export type RouteParams = Record<string, any>;
 
 export type RouteQuery = Record<string, any>;
 
-export type RouteParamsAndQuery<Params extends RouteParams> = {
+export type RouteParamsAndQuery<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
   params: Params;
-  query: RouteQuery;
+  query: Query;
 };
 
-export interface NavigateParams<Params extends RouteParams>
-  extends RouteParamsAndQuery<Params> {
+export interface NavigateParams<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> extends RouteParamsAndQuery<Params, Query> {
   replace?: boolean;
 }
 
-export type RouteInstance<Params extends RouteParams> = {
+export type RouteInstance<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
   $isOpened: Store<boolean>;
   $params: Store<Params>;
-  $query: Store<RouteQuery>;
-  opened: Event<RouteParamsAndQuery<Params>>;
-  updated: Event<RouteParamsAndQuery<Params>>;
+  $query: Store<Query>;
+  opened: Event<RouteParamsAndQuery<Params, Query>>;
+  updated: Event<RouteParamsAndQuery<Params, Query>>;
   closed: Event<void>;
-  navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
-  open: Effect<Params, RouteParamsAndQuery<Params>>;
+  navigate: Effect<
+    NavigateParams<Params, Query>,
+    NavigateParams<Params, Query>
+  >;
+  open: Effect<Params, RouteParamsAndQuery<Params, Query>>;
   kind: typeof Kind.ROUTE;
 };
 
-export type RouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
+export type RouteObject<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
+  route: RouteInstance<Params, Query>;
   path: string;
 };
 
-export type UnmappedRouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params> | RouteInstance<Params>[];
+export type UnmappedRouteObject<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
+  route: RouteInstance<Params, Query> | RouteInstance<Params, Query>[];
   path: string;
 };
 

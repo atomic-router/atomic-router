@@ -1,10 +1,10 @@
 import { UnmappedRouteObject, RouteObject } from '../types';
 
 export function remapRouteObjects(
-  objects: UnmappedRouteObject<any>[],
+  objects: UnmappedRouteObject<any, any>[],
   basePath: string = ''
 ) {
-  let next: RouteObject<any>[] = [];
+  let next: RouteObject<any, any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
       next.push(...routeObj.route.map((route) => ({ ...routeObj, route })));
@@ -17,8 +17,8 @@ export function remapRouteObjects(
     ...routeObj,
     path: `${basePath}${routeObj.path}`,
   }));
-  const derivedRoutes: RouteObject<any>[] = [];
-  const nonDerivedRoutes: RouteObject<any>[] = [];
+  const derivedRoutes: RouteObject<any, any>[] = [];
+  const nonDerivedRoutes: RouteObject<any, any>[] = [];
   for (const routeObj of next) {
     // @ts-expect-error Internals
     if (routeObj.route.settings.derived) {

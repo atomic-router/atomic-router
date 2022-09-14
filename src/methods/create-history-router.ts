@@ -19,13 +19,16 @@ import {
 import { paramsEqual } from '../utils/equals';
 import { isRoute } from './is-route';
 
-type RouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
+type RouteObject<Params extends RouteParams, Query extends RouteQuery> = {
+  route: RouteInstance<Params, Query>;
   path: string;
 };
 
-type UnmappedRouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params> | RouteInstance<Params>[];
+type UnmappedRouteObject<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
+  route: RouteInstance<Params, Query> | RouteInstance<Params, Query>[];
   path: string;
 };
 
@@ -48,10 +51,10 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
 );
 
 const remapRouteObjects = (
-  objects: UnmappedRouteObject<any>[],
+  objects: UnmappedRouteObject<any, any>[],
   basePath: string = ''
 ) => {
-  let next: RouteObject<any>[] = [];
+  let next: RouteObject<any, any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
       next.push(...routeObj.route.map((route) => ({ ...routeObj, route })));
@@ -64,8 +67,8 @@ const remapRouteObjects = (
     ...routeObj,
     path: `${basePath}${routeObj.path}`,
   }));
-  const derivedRoutes: RouteObject<any>[] = [];
-  const nonDerivedRoutes: RouteObject<any>[] = [];
+  const derivedRoutes: RouteObject<any, any>[] = [];
+  const nonDerivedRoutes: RouteObject<any, any>[] = [];
   for (const routeObj of next) {
     // @ts-expect-error Internals
     if (routeObj.route.settings.derived) {
@@ -86,22 +89,22 @@ const remapRouteObjects = (
 
 export const createHistoryRouter = (params: {
   base?: string;
-  routes: UnmappedRouteObject<any>[];
-  notFoundRoute?: RouteInstance<any>;
+  routes: UnmappedRouteObject<any, any>[];
+  notFoundRoute?: RouteInstance<any, any>;
   hydrate?: boolean;
   serialize?: ParamsSerializer;
 }) => {
   type PushParams = Omit<HistoryPushParams, 'history'>;
-  type EnterParams<Params extends RouteParams> = {
-    route: RouteObject<Params>;
+  type EnterParams<Params extends RouteParams, Query extends RouteQuery> = {
+    route: RouteObject<Params, Query>;
     params: Params;
-    query: RouteQuery;
+    query: Query;
     replace: boolean;
   };
-  type RecheckResult<Params extends RouteParams> = {
-    route: RouteObject<Params>;
+  type RecheckResult<Params extends RouteParams, Query extends RouteQuery> = {
+    route: RouteObject<Params, Query>;
     params: Params;
-    query: RouteQuery;
+    query: Query;
   };
 
   const serialize = params.serialize;
@@ -113,7 +116,7 @@ export const createHistoryRouter = (params: {
 
   const $query = createStore({});
   const $path = createStore('');
-  const $activeRoutes = createStore<RouteInstance<any>[]>([], {
+  const $activeRoutes = createStore<RouteInstance<any, any>[]>([], {
     serialize: 'ignore',
   });
   const $isFirstCheckPassed = createStore(false);
@@ -140,7 +143,7 @@ export const createHistoryRouter = (params: {
   });
 
   // Triggered whenever some route.navigate.doneData is triggered
-  const openedFx = createEffect<EnterParams<any>, PushParams>(
+  const openedFx = createEffect<EnterParams<any, any>, PushParams>(
     ({ route, params, query, replace }) => {
       const path = buildPath({
         pathCreator: route.path,
@@ -163,15 +166,15 @@ export const createHistoryRouter = (params: {
     hash: string;
   };
   type RecalculateResult = {
-    opened: RecheckResult<any>[];
-    closed: RecheckResult<any>[];
+    opened: RecheckResult<any, any>[];
+    closed: RecheckResult<any, any>[];
   };
 
   // Recalculate opened/closed routes
   const recalculateFx = createEffect<RecalculateParams, RecalculateResult>(
     ({ path, query, hash }) => {
-      let opened = [] as RecheckResult<any>[];
-      let closed = [] as RecheckResult<any>[];
+      let opened = [] as RecheckResult<any, any>[];
+      let closed = [] as RecheckResult<any, any>[];
 
       for (const route of remappedRoutes) {
         // NOTE: Use hash string as well if route.path contains #
@@ -254,8 +257,11 @@ export const createHistoryRouter = (params: {
       target: openedFx,
     });
 
-    const containsCurrentRoute = <T extends RouteParams>(
-      recheckResults: RecheckResult<T>[]
+    const containsCurrentRoute = <
+      Params extends RouteParams,
+      Query extends RouteQuery
+    >(
+      recheckResults: RecheckResult<Params, Query>[]
     ) => {
       const foundRoute = recheckResults.find(
         (recheckResult) => recheckResult.route.route === routeObj.route

@@ -23,18 +23,16 @@ function normalizePathCreator(pathCreator: string) {
   return pathCreator.replace('://', '\\://');
 }
 
-type BuildPathParams<Params extends RouteParams> = {
+type BuildPathParams<Params extends RouteParams, Query extends RouteQuery> = {
   pathCreator: PathCreator<Params>;
   params: Params;
-  query: RouteQuery;
+  query: Query;
   serialize?: ParamsSerializer;
 };
-export function buildPath<Params extends RouteParams>({
-  pathCreator,
-  params,
-  query,
-  serialize,
-}: BuildPathParams<Params>) {
+export function buildPath<
+  Params extends RouteParams,
+  Query extends RouteQuery
+>({ pathCreator, params, query, serialize }: BuildPathParams<Params, Query>) {
   const pathname = compile(pathCreator)(params);
   const serializedParams =
     serialize?.write(query) ?? new URLSearchParams(query);
