@@ -101,9 +101,7 @@ export function createHistoryRouter({
       try {
         // @ts-expect-error
         scopedHistoryUpdated = scopeBind(historyUpdated);
-      } catch (err) {
-        console.log(err);
-      }
+      } catch (err) {}
       history.listen(() => {
         scopedHistoryUpdated();
       });
