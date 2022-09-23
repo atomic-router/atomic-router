@@ -5,4 +5,5 @@ export * from './utils/build-path';
 export * from './methods/is-route';
 export * from './methods/redirect';
 export * from './methods/chain-route';
+export * from './methods/query-sync';
 export * from './types';
