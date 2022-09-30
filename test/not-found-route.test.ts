@@ -1,8 +1,7 @@
 import { createMemoryHistory } from 'history';
-import { allSettled, fork } from 'effector';
-import { describe, it, expect } from 'vitest';
+import { allSettled, fork, Store, Event } from 'effector';
+import { describe, it, vi, expect, Mock } from 'vitest';
 import { createHistoryRouter, createRoute } from '../src';
-import { describe, it, expect } from 'vitest';
 
 const firstRoute = createRoute();
 const secondRoute = createRoute();
@@ -14,6 +13,34 @@ const router = createHistoryRouter({
     { route: secondRoute, path: '/second' },
   ],
   notFoundRoute,
+});
+
+describe('routeNotFound event', () => {
+  it('Triggers router.routeNotFound event if initialized with "not found"', async () => {
+    const routeNotFound = watch(router.routeNotFound);
+    const history = createMemoryHistory();
+    history.push('/not-found');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(routeNotFound).toBeCalledTimes(1);
+  });
+
+  it('Triggers router.routeNotFound event if route is changed to "not found"', async () => {
+    const routeNotFound = watch(router.routeNotFound);
+    const history = createMemoryHistory();
+    history.push('/');
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(routeNotFound).toBeCalledTimes(0);
+    await history.push('/not-found');
+    expect(routeNotFound).toBeCalledTimes(1);
+  });
 });
 
 describe('notFoundRoute', () => {
@@ -56,3 +83,9 @@ describe('notFoundRoute', () => {
     expect(scope.getState(notFoundRoute.$query)).toEqual({ second: '2' });
   });
 });
+
+function watch<T>(unit: Store<T> | Event<T>): Mock {
+  const fn = vi.fn();
+  unit.watch(fn);
+  return fn;
+}
