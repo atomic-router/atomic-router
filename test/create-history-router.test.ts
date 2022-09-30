@@ -119,6 +119,24 @@ describe('Initialization', () => {
       ]
     `);
   });
+
+  it('Triggers .initialized() when history is set', async () => {
+    const initialized = watch(router.initialized);
+    const history = createMemoryHistory();
+    history.push('/foo');
+    const scope = fork();
+    expect(initialized).toBeCalledTimes(0);
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    expect(initialized).toBeCalledTimes(1);
+    expect(initialized).toBeCalledWith({
+      activeRoutes: [foo],
+      path: '/foo',
+      query: {},
+    });
+  });
 });
 
 describe('Lifecycle', () => {
