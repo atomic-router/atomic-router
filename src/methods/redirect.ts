@@ -9,18 +9,22 @@ import {
 } from 'effector';
 import { RouteInstance, RouteParams, RouteQuery } from '../types';
 
-type RedirectParams<T, Params extends RouteParams> = Params extends {
+type RedirectParams<
+  T,
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = Params extends {
   [key in string]: never;
 }
   ? {
       clock?: Clock<T>;
-      route: RouteInstance<Params>;
+      route: RouteInstance<Params, Query>;
       query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
     }
   :
       | {
           clock?: Clock<T>;
-          route: RouteInstance<Params>;
+          route: RouteInstance<Params, Query>;
           params: ((clock: T) => Params) | Store<Params> | Params;
           query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
         }
@@ -29,15 +33,17 @@ type RedirectParams<T, Params extends RouteParams> = Params extends {
             params: Params;
             query?: RouteQuery;
           }>;
-          route: RouteInstance<Params>;
+          route: RouteInstance<Params, Query>;
           params?: ((clock: T) => Params) | Store<Params> | Params;
           query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
         };
 
 /** Opens passed `route` upon `clock` trigger */
-export function redirect<T, Params extends RouteParams>(
-  options: RedirectParams<T, Params>
-) {
+export function redirect<
+  T,
+  Params extends RouteParams,
+  Query extends RouteQuery
+>(options: RedirectParams<T, Params, Query>) {
   const clock = options.clock
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();

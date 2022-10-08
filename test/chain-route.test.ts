@@ -40,7 +40,7 @@ describe('chainRoute', () => {
   });
 
   it('attach-like config in beforeOpen', async () => {
-    const route = createRoute<{ x: string }>();
+    const route = createRoute<{ x: string }, { foo: string }>();
     const cb = vi.fn(async (payload: { param: string; queryParam: string }) => {
       await sleep(100);
       return payload;

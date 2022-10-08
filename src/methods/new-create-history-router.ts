@@ -30,8 +30,8 @@ export function createHistoryRouter({
   controls = createRouterControls(),
 }: {
   base?: string;
-  routes: UnmappedRouteObject<any>[];
-  notFoundRoute?: RouteInstance<any>;
+  routes: UnmappedRouteObject<any, any>[];
+  notFoundRoute?: RouteInstance<any, any>;
   serialize?: ParamsSerializer;
   hydrate?: boolean;
   controls?: ReturnType<typeof createRouterControls>;
@@ -40,7 +40,7 @@ export function createHistoryRouter({
 
   const setHistory = createEvent<History>();
   const navigateFromRouteTriggered = createEvent<{
-    route: RouteObject<any>;
+    route: RouteObject<any, any>;
     params: RouteParams;
     query: RouteQuery;
     replace: boolean;
@@ -54,14 +54,14 @@ export function createHistoryRouter({
   const recalculated = createEvent<{
     path: string;
     query: RouteQuery;
-    matching: RecalculationResult<any>[];
-    mismatching: RecalculationResult<any>[];
+    matching: RecalculationResult<any, any>[];
+    mismatching: RecalculationResult<any, any>[];
   }>();
-  const routesMatched = createEvent<RecalculationResult<any>[]>();
-  const routesMismatched = createEvent<RecalculationResult<any>[]>();
+  const routesMatched = createEvent<RecalculationResult<any, any>[]>();
+  const routesMismatched = createEvent<RecalculationResult<any, any>[]>();
   const routeNotFound = createEvent();
   const initialized = createEvent<{
-    activeRoutes: RouteInstance<any>[];
+    activeRoutes: RouteInstance<any, any>[];
     path: string;
     query: RouteQuery;
   }>();
@@ -74,7 +74,7 @@ export function createHistoryRouter({
       updateFilter: (newQuery, oldQuery) => !paramsEqual(newQuery, oldQuery),
     }
   );
-  const $activeRoutes = createStore<RouteInstance<any>[]>([], {
+  const $activeRoutes = createStore<RouteInstance<any, any>[]>([], {
     serialize: 'ignore',
   });
   // @ts-expect-error
@@ -252,8 +252,8 @@ export function createHistoryRouter({
   sample({
     clock: recalculateTriggered,
     fn({ path, query, hash }) {
-      const matchingRoutes = [] as RecalculationResult<any>[];
-      const mismatchingRoutes = [] as RecalculationResult<any>[];
+      const matchingRoutes = [] as RecalculationResult<any, any>[];
+      const mismatchingRoutes = [] as RecalculationResult<any, any>[];
 
       for (const route of remappedRoutes) {
         // NOTE: Use hash string as well if route.path contains #
@@ -435,15 +435,18 @@ export function createHistoryRouter({
   };
 }
 
-type RecalculationResult<Params extends RouteParams> = {
-  routeObj: RouteObject<Params>;
+type RecalculationResult<
+  Params extends RouteParams,
+  Query extends RouteQuery
+> = {
+  routeObj: RouteObject<Params, Query>;
   params: Params;
-  query: RouteQuery;
+  query: Query;
 };
 
 const containsCurrentRoute =
-  (routeObj: RouteObject<any>) =>
-  (recheckResults: RecalculationResult<any>[]) => {
+  (routeObj: RouteObject<any, any>) =>
+  (recheckResults: RecalculationResult<any, any>[]) => {
     const recheck = recheckResults.find(
       (recheckResult) => recheckResult.routeObj.route === routeObj.route
     );

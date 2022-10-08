@@ -2,8 +2,8 @@ import { Kind, RouteInstance } from '../types';
 
 /** Detects whether passed value is a `RouteInstance<any>` or not */
 export const isRoute = (
-  route: RouteInstance<any> | unknown
-): route is RouteInstance<any> => {
+  route: RouteInstance<any, any> | unknown
+): route is RouteInstance<any, any> => {
   return (
     typeof route === 'object' &&
     route !== null &&
