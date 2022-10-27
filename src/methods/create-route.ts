@@ -13,6 +13,7 @@ import {
   RouteInstance,
   NavigateParams,
   Kind,
+  EmptyObject,
 } from '../types';
 
 type CreateRouteParams = {
@@ -33,8 +34,8 @@ export function createRoute<Params extends RouteParams = {}>(
 
   const openFx = attach({
     effect: navigateFx,
-    mapParams: (params: Params) => ({
-      params: params || ({} as Params),
+    mapParams: (params: Params extends EmptyObject ? void : Params) => ({
+      params: (params || {}) as Params,
       query: {} as RouteQuery,
     }),
   });

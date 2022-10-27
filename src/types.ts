@@ -23,7 +23,10 @@ export type RouteInstance<Params extends RouteParams> = {
   updated: Event<RouteParamsAndQuery<Params>>;
   closed: Event<void>;
   navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
-  open: Effect<Params, RouteParamsAndQuery<Params>>;
+  open: Effect<
+    Params extends EmptyObject ? void : Params,
+    RouteParamsAndQuery<Params>
+  >;
   kind: typeof Kind.ROUTE;
 };
 
@@ -58,3 +61,5 @@ export type PathCreator<Params extends RouteParams> = string;
 export const Kind = {
   ROUTE: Symbol(),
 };
+
+export type EmptyObject = { [key in string]: never };
