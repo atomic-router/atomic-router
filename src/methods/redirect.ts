@@ -7,11 +7,9 @@ import {
   sample,
   Store,
 } from 'effector';
-import { RouteInstance, RouteParams, RouteQuery } from '../types';
+import { EmptyObject, RouteInstance, RouteParams, RouteQuery } from '../types';
 
-type RedirectParams<T, Params extends RouteParams> = Params extends {
-  [key in string]: never;
-}
+type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
   ? {
       clock?: Clock<T>;
       route: RouteInstance<Params>;
