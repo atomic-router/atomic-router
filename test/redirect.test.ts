@@ -1,4 +1,4 @@
-import { allSettled, createEvent, createStore, fork } from 'effector';
+import {allSettled, createEvent, createStore, fork, restore} from 'effector';
 import { describe, it, expect, vi } from 'vitest';
 import { createHistoryRouter, createRoute, redirect } from '../src';
 import { createMemoryHistory } from 'history';
@@ -158,4 +158,64 @@ describe('redirect', () => {
       baz: 'bar-test',
     });
   });
+
+
+  describe('`replace` option', () => {
+    it('primitive variant', async () => {
+      const clock = createEvent();
+      const route = createRoute();
+      const $navigateDone = restore(route.navigate.done, null)
+
+      redirect({
+        clock,
+        route,
+        replace: true,
+      });
+
+      const scope = fork();
+
+      await allSettled(clock, { scope });
+
+      expect(scope.getState($navigateDone)).toBeTruthy();
+      expect(scope.getState($navigateDone.map(data => data?.params.replace))).toEqual(true);
+    });
+
+    it('store variant', async () => {
+      const clock = createEvent();
+      const route = createRoute();
+      const $navigateDone = restore(route.navigate.done, null)
+
+      redirect({
+        clock,
+        route,
+        replace: createStore(true),
+      });
+
+      const scope = fork();
+
+      await allSettled(clock, { scope });
+
+      expect(scope.getState($navigateDone)).toBeTruthy();
+      expect(scope.getState($navigateDone.map(data => data?.params.replace))).toEqual(true);
+    });
+
+    it('fn variant', async () => {
+      const clock = createEvent();
+      const route = createRoute();
+      const $navigateDone = restore(route.navigate.done, null)
+
+      redirect({
+        clock,
+        route,
+        replace: () => true,
+      });
+
+      const scope = fork();
+
+      await allSettled(clock, { scope });
+
+      expect(scope.getState($navigateDone)).toBeTruthy();
+      expect(scope.getState($navigateDone.map(data => data?.params.replace))).toEqual(true);
+    });
+  })
 });
