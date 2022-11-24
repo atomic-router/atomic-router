@@ -55,7 +55,7 @@ export function redirect<T, Params extends RouteParams>(
     fn: ({ params, query, replace }, clock) => ({
       params: typeof params === 'function' ? params(clock) : params,
       query: typeof query === 'function' ? query(clock) : query,
-      replace: typeof replace === "function" ? replace(clock) : replace,
+      replace: typeof replace === 'function' ? replace(clock) : replace,
     }),
     target: options.route.navigate,
   });
