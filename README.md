@@ -11,6 +11,8 @@ Simple routing implementation that provides abstraction layer instead of inline 
 
 ### Read the docs: [atomic-router.github.io](https://atomic-router.github.io)
 
+> ❗️ **Attention**: At the moment atomic-router team collecting issues and feature requests to redesign and release update. Use current version of atomic-router on your own risk. We are going to write migration guide when/if the release will contain breaking changes. Thank you for reporting issues 🧡
+
 ### Get view-library bindings
 
 - ⚛️ [**React**](https://github.com/atomic-router/react)
