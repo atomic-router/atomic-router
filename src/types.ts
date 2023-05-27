@@ -6,8 +6,8 @@ export type RouteParams = Record<string, any>;
 export type RouteQuery = Record<string, any>;
 
 export type RouteParamsAndQuery<Params extends RouteParams> = {
-  params: Params;
-  query: RouteQuery;
+  params?: Params;
+  query?: RouteQuery;
 };
 
 export interface NavigateParams<Params extends RouteParams>
