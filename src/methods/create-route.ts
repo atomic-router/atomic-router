@@ -1,101 +1,185 @@
 import {
   attach,
+  combine,
   createEffect,
   createEvent,
   createStore,
-  split,
-  Store,
-} from 'effector';
+  sample,
+  scopeBind,
+} from "effector";
+
+import { equalsFilter } from "../lib/equals-filter";
+import { Kind } from "../misc/kind";
+import { rootDomain } from "../misc/root-domain";
 import {
+  EMPTY_PARAMS,
+  EMPTY_QUERY,
+  Route,
+  RouteDomain,
   RouteParams,
   RouteParamsAndQuery,
   RouteQuery,
-  RouteInstance,
-  NavigateParams,
-  Kind,
-  EmptyObject,
-} from '../types';
+} from "../types";
 
-type CreateRouteParams = {
-  filter?: Store<boolean>;
-};
+export function createRoute<
+  Params extends RouteParams = {},
+  ParentParams extends RouteParams = {},
+  DomainParams extends RouteParams = {}
+>(
+  config: {} & (
+    | {
+        params?: Params;
+        parent?: Route<ParentParams, {}, DomainParams>;
+        domain?: RouteDomain<DomainParams>;
+        contract?: {
+          query: any;
+        };
+      }
+    | { virtual: true }
+  ) = {}
+) {
+  // @ts-expect-error
+  const domain: RouteDomain<DomainParams> = config?.domain ?? rootDomain;
+  const actualConfig = {
+    ...config,
+    domain,
+  };
+  const __ = {
+    pathPattern: "",
+    config: actualConfig,
+    openedByDomain: createEvent<RouteParamsAndQuery<Params>>(),
+    closedByDomain: createEvent(),
+  };
 
-export function createRoute<Params extends RouteParams = {}>(
-  params: CreateRouteParams = {}
-): RouteInstance<Params> {
-  const navigateFx = createEffect<
-    NavigateParams<Params>,
-    NavigateParams<Params>
-  >(({ params, query, replace = false }) => ({
-    params: params || {},
-    query: query || {},
-    replace,
-  }));
+  const opened = createEvent();
+  const updated = createEvent();
+  const closed = createEvent();
+  const prefetchRequested = createEvent();
 
-  const openFx = attach({
-    effect: navigateFx,
-    mapParams: (params: Params extends EmptyObject ? void : Params) => ({
-      params: (params || {}) as Params,
-      query: {} as RouteQuery,
-    }),
+  const $isOpened = createStore(false);
+  const $params = createStore(EMPTY_PARAMS, {
+    updateFilter: equalsFilter,
   });
+  // @ts-expect-error
+  const $query = config.virtual
+    ? createStore(EMPTY_QUERY as RouteQuery)
+    : combine($isOpened, domain.$query, (isOpened, query) => {
+        return isOpened ? query : EMPTY_QUERY;
+      });
 
-  const $isOpened = createStore<boolean>(false);
-  const $params = createStore<Params>({} as Params);
-  const $query = createStore<RouteQuery>({});
+  // createStore<RouteQuery>({}, { updateFilter: equalsFilter });
 
-  const opened = createEvent<RouteParamsAndQuery<Params>>();
-  const updated = createEvent<RouteParamsAndQuery<Params>>();
-  const closed = createEvent<void>();
+  const shape = {
+    isOpened: $isOpened,
+    params: $params,
+    query: $query,
+  };
 
-  $isOpened.on(opened, () => true).on(closed, () => false);
+  const $shape = combine(shape);
 
-  $params
-    .on(opened, (_, { params }) => params)
-    .on(updated, (_, { params }) => params);
-
-  $query
-    .on(opened, (_, { query }) => query)
-    .on(updated, (_, { query }) => query);
-
-  split({
-    source: navigateFx.doneData,
-    match: $isOpened.map((isOpened) => (isOpened ? 'updated' : 'opened')),
-    cases: {
-      opened,
-      updated,
+  const navigate = createEffect((payload) => {
+    return payload;
+  });
+  const open = attach({
+    effect: navigate,
+    mapParams: (params) => {
+      return { params, query: EMPTY_QUERY };
     },
   });
 
-  // if (params.filter) {
-  //   const filter = params.filter;
-  //   split({
-  //     // @ts-expect-error
-  //     source: sample({ clock: filter }),
-  //     // @ts-expect-error
-  //     match: (filter) => (filter ? 'true' : 'false'),
-  //     cases: {
-  //       true: opened,
-  //       false: closed,
-  //     },
-  //   });
-  // }
-
-  const instance: RouteInstance<Params> = {
+  const route: Route<Params, ParentParams, DomainParams> = {
     $isOpened,
     $params,
     $query,
+    $shape,
+    open,
+    navigate,
     opened,
     updated,
     closed,
-    navigate: navigateFx,
-    open: openFx,
+    prefetchRequested,
+    __,
     kind: Kind.ROUTE,
-    // @ts-expect-error Internal stuff
-    settings: {
-      derived: Boolean(params.filter),
-    },
+    "@@unitShape": () => shape,
   };
 
-  return instance;
+  // @ts-expect-error
+  if (actualConfig.virtual) {
+    // @ts-ignore
+    sample({
+      clock: navigate,
+      filter: $isOpened,
+      fn: ({ params, query, replace }) => ({
+        params,
+        query,
+        replace: replace || false,
+      }),
+      target: updated,
+    });
+
+    // @ts-ignore
+    sample({
+      clock: navigate,
+      filter: $isOpened.map((isOpened) => !isOpened),
+      fn: ({ params, query, replace }) => ({
+        params,
+        query,
+        replace: replace || false,
+      }),
+      target: opened,
+    });
+
+    $isOpened.on([opened, updated], () => true);
+    $params.on([opened, updated], (_, { params }) => params || EMPTY_PARAMS);
+    $query.on([opened, updated], (_, { query }) => query);
+
+    $isOpened.on(closed, () => false);
+    $params.on(closed, (_) => EMPTY_PARAMS as Params);
+    $query.on(closed, (_) => EMPTY_QUERY as RouteQuery);
+  } else {
+    // @ts-expect-error Internal API usage
+    sample({
+      clock: navigate,
+      fn: ({ params, query, replace }) => ({
+        route,
+        params,
+        query,
+        replace: replace || false,
+      }),
+      // @ts-expect-error
+      target: domain.__.routeNavigateTriggered,
+    });
+
+    sample({
+      clock: __.openedByDomain,
+      filter: $isOpened,
+      target: updated,
+    });
+
+    sample({
+      clock: __.openedByDomain,
+      filter: $isOpened.map((isOpened) => !isOpened),
+      target: opened,
+    });
+
+    sample({
+      clock: __.closedByDomain,
+      filter: $isOpened,
+      target: closed,
+    });
+
+    $isOpened.on([opened, updated], () => true);
+    $params.on([opened, updated], (_, { params }) => params || EMPTY_PARAMS);
+    // $query.on([opened, updated], (_, { query }) => query);
+
+    $isOpened.on(closed, () => false);
+    $params.on(closed, (_) => EMPTY_PARAMS as Params);
+    // $query.on(closed, (_) => (EMPTY_QUERY as RouteQuery));
+  }
+
+  // Add route to domain
+  // @ts-expect-error
+  domain.__.routes.push(route);
+
+  return route;
 }

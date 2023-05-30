@@ -1,36 +1,41 @@
 import {
-  is,
-  guard,
-  merge,
-  sample,
-  combine,
-  createStore,
-  Unit,
-  Clock,
-  Effect,
-  StoreValue,
-  createEvent,
-  NoInfer,
-  EffectParams,
   attach,
+  Clock,
+  combine,
+  createEffect,
+  createEvent,
+  createStore,
+  Effect,
+  EffectParams,
+  is,
+  merge,
+  NoInfer,
+  sample,
+  Unit,
 } from 'effector';
 
-import { createRoute } from './create-route';
+import { createRoute } from '../methods/create-route';
 import {
-  RouteInstance,
+  EMPTY_PARAMS,
+  EMPTY_QUERY,
+  ExtractRouteParams,
+  ExtractRouteQuery,
+  Route,
   RouteParams,
   RouteParamsAndQuery,
   RouteQuery,
 } from '../types';
 
-import { isRoute } from './is-route';
+import { isRoute } from '../misc/is-route';
 
 type ChainRouteParamsInternalAttach<
   Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams,
   FX extends Effect<any, any, any>
 > = {
-  route: RouteInstance<Params>;
-  chainedRoute?: RouteInstance<Params>;
+  route: Route<Params, ParentParams, DomainParams>;
+  chainedRoute?: Route<Params, ParentParams, DomainParams>;
   beforeOpen: {
     effect: FX;
     mapParams: ({
@@ -45,23 +50,35 @@ type ChainRouteParamsInternalAttach<
   cancelOn?: Clock<any>;
 };
 
-type ChainRouteParamsWithEffect<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
-  chainedRoute?: RouteInstance<Params>;
+type ChainRouteParamsWithEffect<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+> = {
+  route: Route<Params, ParentParams, DomainParams>;
+  chainedRoute?: Route<Params, ParentParams, DomainParams>;
   beforeOpen: Effect<RouteParamsAndQuery<Params>, any, any>;
 };
 
-type ChainRouteParamsAdvanced<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
-  chainedRoute?: RouteInstance<Params>;
+type ChainRouteParamsAdvanced<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+> = {
+  route: Route<Params, ParentParams, DomainParams>;
+  chainedRoute?: Route<Params, ParentParams, DomainParams>;
   beforeOpen: Clock<RouteParamsAndQuery<Params>>;
   openOn: Clock<any>;
   cancelOn?: Clock<any>;
 };
 
-type ChainRouteParamsNormalized<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
-  chainedRoute: RouteInstance<Params>;
+type ChainRouteParamsNormalized<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+> = {
+  route: Route<Params, ParentParams, DomainParams>;
+  chainedRoute: Route<Params, ParentParams, DomainParams>;
   beforeOpen: Clock<RouteParamsAndQuery<Params>>;
   openOn: Clock<any>;
   cancelOn: Clock<any>;
@@ -69,33 +86,51 @@ type ChainRouteParamsNormalized<Params extends RouteParams> = {
 
 type chainRouteParams<
   Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams,
   FX extends Effect<any, any, any>
 > =
-  | RouteInstance<Params>
-  | ChainRouteParamsWithEffect<Params>
-  | ChainRouteParamsAdvanced<Params>
-  | ChainRouteParamsInternalAttach<Params, FX>;
+  | Route<Params, ParentParams, DomainParams>
+  | ChainRouteParamsWithEffect<Params, ParentParams, DomainParams>
+  | ChainRouteParamsAdvanced<Params, ParentParams, DomainParams>
+  | ChainRouteParamsInternalAttach<Params, ParentParams, DomainParams, FX>;
 
 function normalizeChainRouteParams<
   Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams,
   FX extends Effect<any, any, any>
->(params: chainRouteParams<Params, FX>): ChainRouteParamsNormalized<Params> {
-  const resultParams: ChainRouteParamsNormalized<Params> =
-    {} as ChainRouteParamsNormalized<Params>;
+>(
+  params: chainRouteParams<Params, ParentParams, DomainParams, FX>
+): ChainRouteParamsNormalized<Params, ParentParams, DomainParams> {
+  const resultParams: ChainRouteParamsNormalized<
+    Params,
+    ParentParams,
+    DomainParams
+  > = {} as ChainRouteParamsNormalized<Params, ParentParams, DomainParams>;
   if (isRoute(params)) {
+    const beforeOpen = createEffect(() => {});
     Object.assign(resultParams, {
       route: params,
-      chainedRoute: createRoute<Params>(),
-      beforeOpen: createEvent(),
-      openOn: merge([params.opened, params.closed]),
+      chainedRoute: createRoute<Params, ParentParams, DomainParams>({
+        virtual: true,
+      }),
+      beforeOpen: beforeOpen,
+      openOn: beforeOpen.doneData,
       cancelOn: merge([createEvent()]),
     });
     return resultParams;
   }
-  const effectParams = params as ChainRouteParamsWithEffect<Params>;
+  const effectParams = params as ChainRouteParamsWithEffect<
+    Params,
+    ParentParams,
+    DomainParams
+  >;
   Object.assign(resultParams, {
     route: effectParams.route,
-    chainedRoute: effectParams.chainedRoute || createRoute<Params>(),
+    chainedRoute:
+      effectParams.chainedRoute ||
+      createRoute<Params, ParentParams, DomainParams>({ virtual: true }),
     beforeOpen: is.unit(effectParams.beforeOpen)
       ? effectParams.beforeOpen
       : attach(effectParams.beforeOpen),
@@ -111,8 +146,13 @@ function normalizeChainRouteParams<
     });
     return resultParams;
   }
-  const advancedParams = params as ChainRouteParamsAdvanced<Params>;
+  const advancedParams = params as ChainRouteParamsAdvanced<
+    Params,
+    ParentParams,
+    DomainParams
+  >;
   Object.assign(resultParams, {
+    // @ts-ignore
     openOn: sample({ clock: advancedParams.openOn as Unit<any> }),
     cancelOn: sample({
       clock: (advancedParams.cancelOn as Unit<any>) || createEvent(),
@@ -121,22 +161,38 @@ function normalizeChainRouteParams<
   return resultParams;
 }
 
-function chainRoute<Params extends RouteParams>(
-  instance: RouteInstance<Params>
-): RouteInstance<Params>;
-
-function chainRoute<Params extends RouteParams>(
-  config: ChainRouteParamsWithEffect<Params>
-): RouteInstance<Params>;
-
-function chainRoute<Params extends RouteParams>(
-  config: ChainRouteParamsAdvanced<Params>
-): RouteInstance<Params>;
+function chainRoute<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+>(
+  instance: Route<Params, ParentParams, DomainParams>
+): Route<Params, ParentParams, DomainParams>;
 
 function chainRoute<
   Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+>(
+  config: ChainRouteParamsWithEffect<Params, ParentParams, DomainParams>
+): Route<Params, ParentParams, DomainParams>;
+
+function chainRoute<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+>(
+  config: ChainRouteParamsAdvanced<Params, ParentParams, DomainParams>
+): Route<Params, ParentParams, DomainParams>;
+
+function chainRoute<
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams,
   FX extends Effect<any, any, any>
->(config: ChainRouteParamsInternalAttach<Params, FX>): RouteInstance<Params>;
+>(
+  config: ChainRouteParamsInternalAttach<Params, ParentParams, DomainParams, FX>
+): Route<Params, ParentParams, DomainParams>;
 
 /**
  * Creates chained route
@@ -150,12 +206,14 @@ function chainRoute<
  */
 function chainRoute<
   Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams,
   FX extends Effect<any, any, any>
->(params: chainRouteParams<Params, FX>) {
+>(params: chainRouteParams<Params, ParentParams, DomainParams, FX>) {
   const { route, chainedRoute, beforeOpen, openOn, cancelOn } =
     normalizeChainRouteParams(params);
-  const $params = createStore({} as StoreValue<typeof route['$params']>);
-  const $query = createStore({} as StoreValue<typeof route['$query']>);
+  const $params = createStore(EMPTY_PARAMS as ExtractRouteParams<typeof route>);
+  const $query = createStore(EMPTY_QUERY as ExtractRouteQuery<typeof route>);
   const $hasSameParams = combine(
     combine([route.$params, route.$query]),
     combine([$params, $query]),
@@ -166,6 +224,7 @@ function chainRoute<
   const routeOpened = sample({
     clock: [route.opened, route.updated],
   });
+
   // 1. Call `beforeOpen` whenever route is opened
   sample({
     clock: routeOpened,
@@ -173,9 +232,10 @@ function chainRoute<
   });
   $params.on(routeOpened, (_prev, { params }) => params);
   $query.on(routeOpened, (_prev, { query }) => query);
+
   // 2. Listen to `openOn` if route is still opened on the same position
-  const chainedRouteResolved = guard({
-    clock: openOn,
+  const chainedRouteResolved = sample({
+    clock: openOn as Unit<any>,
     source: { params: $params, query: $query },
     filter: $hasSameParams,
   });
@@ -183,6 +243,7 @@ function chainRoute<
     clock: chainedRouteResolved,
     target: chainedRoute.navigate,
   });
+
   // 4. Cancel loading if page closed or `cancelOn` is called
   // @ts-expect-error
   const aborted = merge([route.closed, cancelOn]);

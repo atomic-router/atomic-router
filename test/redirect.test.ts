@@ -1,6 +1,13 @@
 import { allSettled, createEvent, createStore, fork, restore } from 'effector';
 import { describe, it, expect, vi } from 'vitest';
-import { createHistoryRouter, createRoute, redirect } from '../src';
+import {
+  attachPaths,
+  createRoute,
+  createRouterDomain,
+  redirect,
+  setHistory,
+  RouteQuery,
+} from '../src';
 import { createMemoryHistory } from 'history';
 import { Mock } from 'vitest/dist/browser';
 
@@ -11,7 +18,7 @@ function argumentHistory(fn: Mock) {
 describe('redirect', () => {
   it('Opens `route` on `clock` trigger', async () => {
     const clock = createEvent();
-    const route = createRoute();
+    const route = createRoute({ virtual: true });
 
     redirect({
       clock,
@@ -38,24 +45,24 @@ describe('redirect', () => {
         search: state.location.search,
       })
     );
-    const foo = createRoute();
-    const bar = createRoute();
-    const clock = createEvent();
-    const router = createHistoryRouter({
+    const domain = createRouterDomain({
       base: '/#',
-      routes: [
-        { route: foo, path: '/foo' },
-        { route: bar, path: '/bar' },
-      ],
     });
+    const foo = createRoute({ domain });
+    const bar = createRoute({ domain });
+    const clock = createEvent();
+    attachPaths([
+      [foo, '/foo'],
+      [bar, '/bar'],
+    ]);
     redirect({
       clock,
       route: foo,
     });
     const scope = fork();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     expect(argumentHistory(historyUpdated)).toMatchInlineSnapshot('[]');
 
@@ -102,7 +109,7 @@ describe('redirect', () => {
 
   it('Object-like `params` & `query`', async () => {
     const clock = createEvent();
-    const route = createRoute<{ foo: string }>();
+    const route = createRoute<{ foo: string }>({ virtual: true });
 
     redirect({
       clock,
@@ -121,12 +128,12 @@ describe('redirect', () => {
 
   it('Store-like `params` & `query`', async () => {
     const clock = createEvent();
-    const route = createRoute<{ foo: string }>();
+    const route = createRoute<{ foo: string }>({ virtual: true });
 
     redirect({
       clock,
       params: createStore({ foo: 'bar' }),
-      query: createStore({ baz: 'test' }),
+      query: createStore({ baz: 'test' } as RouteQuery),
       route,
     });
 
@@ -140,7 +147,7 @@ describe('redirect', () => {
 
   it('Function-like `params` & `query`', async () => {
     const clock = createEvent<string>();
-    const route = createRoute<{ foo: string }>();
+    const route = createRoute<{ foo: string }>({ virtual: true });
 
     redirect({
       clock,

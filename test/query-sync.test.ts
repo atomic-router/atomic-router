@@ -3,75 +3,73 @@ import { describe, it, expect } from 'vitest';
 import { allSettled, createEvent, createStore, fork, restore } from 'effector';
 
 import {
+  attachPaths,
   createRoute,
-  createHistoryRouter,
+  createRouterDomain,
   querySync,
-  createRouterControls,
+  setHistory,
 } from '../src';
 
 const createRouter = () => {
-  const route = createRoute();
-  const routeA = createRoute();
-  const routeB = createRoute();
-  const notOpenedRoute = createRoute();
+  const domain = createRouterDomain();
 
-  const controls = createRouterControls();
+  const route = createRoute({ domain });
+  const routeA = createRoute({ domain });
+  const routeB = createRoute({ domain });
+  const notOpenedRoute = createRoute({ domain });
 
-  const router = createHistoryRouter({
-    routes: [
-      { path: '/', route },
-      { path: '/not-opened', route: notOpenedRoute },
-      { path: '/a', route: routeA },
-      { path: '/b', route: routeB },
-    ],
-    controls,
-  });
+  attachPaths([
+    [route, '/'],
+    [notOpenedRoute, '/not-opened'],
+    [routeA, '/a'],
+    [routeB, '/b'],
+  ]);
 
-  return { router, controls, route, routeA, routeB, notOpenedRoute };
+  return { domain, route, routeA, routeB, notOpenedRoute };
 };
 
 describe('querySync', () => {
   it('Updates query when source is changed', async () => {
-    const { router, controls } = createRouter();
+    const { domain } = createRouter();
     const qChanged = createEvent<string>();
     const $q = restore(qChanged, '');
 
     querySync({
       source: { fromSource: $q },
-      controls,
+      domain,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     await allSettled(qChanged, {
       scope,
       params: 'test',
     });
 
-    expect(scope.getState(controls.$query)).toEqual({
+    expect(scope.getState(domain.$query)).toEqual({
       fromSource: 'test',
     });
     expect(history.location.search).toEqual(`?fromSource=test`);
   });
 
   it('Updates source when query is changed', async () => {
-    const { router, controls } = createRouter();
+    const { domain } = createRouter();
     const $q = createStore('');
 
     querySync({
       source: { fromQuery: $q },
-      controls,
+      domain,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     history.push('/?fromQuery=foo');
 
@@ -79,7 +77,7 @@ describe('querySync', () => {
   });
 
   it('Sets source to defaultState if query param is missing', async () => {
-    const { router, controls } = createRouter();
+    const { domain } = createRouter();
     const qChanged = createEvent<string>();
     const $q = createStore('defaultState');
 
@@ -87,14 +85,14 @@ describe('querySync', () => {
 
     querySync({
       source: { defaultState: $q },
-      controls,
+      domain,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     await allSettled(qChanged, {
       scope,
@@ -106,21 +104,21 @@ describe('querySync', () => {
   });
 
   it('Ignore source updates if passed route is not opened', async () => {
-    const { router, controls, notOpenedRoute } = createRouter();
+    const { domain, notOpenedRoute } = createRouter();
     const qChanged = createEvent<string>();
     const $q = restore(qChanged, '');
 
     querySync({
       source: { shouldBeIgnored: $q },
-      controls,
+      domain,
       route: notOpenedRoute,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     await allSettled(qChanged, {
       scope,
@@ -131,20 +129,20 @@ describe('querySync', () => {
   });
 
   it('Ignore history updates if passed route is not opened', async () => {
-    const { router, controls, notOpenedRoute } = createRouter();
+    const { domain, notOpenedRoute } = createRouter();
     const $q = createStore('');
 
     querySync({
       source: { q: $q },
-      controls,
+      domain,
       route: notOpenedRoute,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     history.push('/?foo=bar');
 
@@ -152,7 +150,7 @@ describe('querySync', () => {
   });
 
   it('Triggers history updates only on `clock` trigger (if present)', async () => {
-    const { router, controls } = createRouter();
+    const { domain } = createRouter();
     const qChanged = createEvent<string>();
     const clock = createEvent();
     const $q = restore(qChanged, '');
@@ -160,14 +158,14 @@ describe('querySync', () => {
     querySync({
       source: { q: $q },
       clock,
-      controls,
+      domain,
     });
 
     const scope = fork();
     const history = createMemoryHistory();
-    await allSettled(router.setHistory, {
+    await allSettled(setHistory, {
       scope,
-      params: history,
+      params: { history, domain },
     });
     await allSettled(qChanged, {
       scope,
@@ -188,14 +186,14 @@ describe('querySync', () => {
 
   describe('cleanup.irrelevant option', () => {
     it('Removes irrelevant params if set to true', async () => {
-      const { router, controls, routeA } = createRouter();
+      const { domain, routeA } = createRouter();
       const qChanged = createEvent<string>();
       const $q = restore(qChanged, '');
 
       querySync({
         source: { q: $q },
         route: routeA,
-        controls,
+        domain,
         cleanup: {
           irrelevant: true,
         },
@@ -203,9 +201,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       history.push('/a?foo=bar');
 
@@ -220,14 +218,14 @@ describe('querySync', () => {
     });
 
     it('Keeps irrelevant params if set to false', async () => {
-      const { router, controls, routeA } = createRouter();
+      const { domain, routeA } = createRouter();
       const qChanged = createEvent<string>();
       const $q = restore(qChanged, '');
 
       querySync({
         source: { q: $q },
         route: routeA,
-        controls,
+        domain,
         cleanup: {
           irrelevant: false,
         },
@@ -235,9 +233,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       history.push('/a?foo=bar');
 
@@ -252,14 +250,14 @@ describe('querySync', () => {
     });
 
     it('Keeps params passed to `preserve`', async () => {
-      const { router, controls, routeA } = createRouter();
+      const { domain, routeA } = createRouter();
       const qChanged = createEvent<string>();
       const $q = restore(qChanged, '');
 
       querySync({
         source: { q: $q },
         route: routeA,
-        controls,
+        domain,
         cleanup: {
           irrelevant: true,
           preserve: ['foo'],
@@ -268,9 +266,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       history.push('/a?foo=bar&bar=baz');
 
@@ -287,13 +285,13 @@ describe('querySync', () => {
 
   describe('cleanup.empty option', () => {
     it('Removes empty params if set to true', async () => {
-      const { router, controls } = createRouter();
+      const { domain } = createRouter();
       const qChanged = createEvent<string>();
       const $q = restore(qChanged, '');
 
       querySync({
         source: { q: $q },
-        controls,
+        domain,
         cleanup: {
           empty: true,
         },
@@ -301,9 +299,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       await allSettled(qChanged, {
         scope,
@@ -321,13 +319,13 @@ describe('querySync', () => {
     });
 
     it('Passes empty params if set to false', async () => {
-      const { router, controls } = createRouter();
+      const { domain } = createRouter();
       const qChanged = createEvent<string>();
       const $q = restore(qChanged, '');
 
       querySync({
         source: { q: $q },
-        controls,
+        domain,
         cleanup: {
           empty: false,
         },
@@ -335,9 +333,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       await allSettled(qChanged, {
         scope,
@@ -355,7 +353,7 @@ describe('querySync', () => {
     });
 
     it('Preserves empty params if they are present in cleanup.preserve', async () => {
-      const { router, controls } = createRouter();
+      const { domain } = createRouter();
       const fooChanged = createEvent<string>();
       const qChanged = createEvent<string>();
       const $foo = restore(qChanged, '');
@@ -363,7 +361,7 @@ describe('querySync', () => {
 
       querySync({
         source: { q: $q, foo: $foo },
-        controls,
+        domain,
         cleanup: {
           empty: true,
           preserve: ['q'],
@@ -372,9 +370,9 @@ describe('querySync', () => {
 
       const scope = fork();
       const history = createMemoryHistory();
-      await allSettled(router.setHistory, {
+      await allSettled(setHistory, {
         scope,
-        params: history,
+        params: { history, domain },
       });
       await allSettled(qChanged, {
         scope,

@@ -6,20 +6,25 @@ import {
   is,
   sample,
   Store,
-} from 'effector';
-import { EmptyObject, RouteInstance, RouteParams, RouteQuery } from '../types';
+} from "effector";
+import { EmptyObject, Route, RouteParams, RouteQuery } from "../types";
 
-type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
+type RedirectParams<
+  T,
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+> = Params extends EmptyObject
   ? {
       clock?: Clock<T>;
-      route: RouteInstance<Params>;
+      route: Route<Params, ParentParams, DomainParams>;
       query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
       replace?: ((clock: T) => boolean) | Store<boolean> | boolean;
     }
   :
       | {
           clock?: Clock<T>;
-          route: RouteInstance<Params>;
+          route: Route<Params, ParentParams, DomainParams>;
           params: ((clock: T) => Params) | Store<Params> | Params;
           query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
           replace?: ((clock: T) => boolean) | Store<boolean> | boolean;
@@ -30,16 +35,19 @@ type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
             query?: RouteQuery;
             replace?: boolean;
           }>;
-          route: RouteInstance<Params>;
+          route: Route<Params, ParentParams, DomainParams>;
           params?: ((clock: T) => Params) | Store<Params> | Params;
           query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
           replace?: ((clock: T) => boolean) | Store<boolean> | boolean;
         };
 
 /** Opens passed `route` upon `clock` trigger */
-export function redirect<T, Params extends RouteParams>(
-  options: RedirectParams<T, Params>
-) {
+export function redirect<
+  T,
+  Params extends RouteParams,
+  ParentParams extends RouteParams,
+  DomainParams extends RouteParams
+>(options: RedirectParams<T, Params, ParentParams, DomainParams>) {
   const clock = options.clock
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
@@ -53,9 +61,9 @@ export function redirect<T, Params extends RouteParams>(
     clock: clock,
     source: { params, query, replace },
     fn: ({ params, query, replace }, clock) => ({
-      params: typeof params === 'function' ? params(clock) : params,
-      query: typeof query === 'function' ? query(clock) : query,
-      replace: typeof replace === 'function' ? replace(clock) : replace,
+      params: typeof params === "function" ? params(clock) : params,
+      query: typeof query === "function" ? query(clock) : query,
+      replace: typeof replace === "function" ? replace(clock) : replace,
     }),
     target: options.route.navigate,
   });

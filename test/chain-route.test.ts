@@ -10,7 +10,7 @@ const sleep = (t: number) => {
 
 describe('chainRoute', () => {
   it('Creates a chained route', async () => {
-    const route = createRoute();
+    const route = createRoute({ virtual: true });
     const chainedRoute = chainRoute(route);
     const scope = fork();
     await allSettled(route.open, {
@@ -21,7 +21,7 @@ describe('chainRoute', () => {
   });
 
   it('Effect in beforeOpen', async () => {
-    const route = createRoute();
+    const route = createRoute({ virtual: true });
     const cb = vi.fn((_: any) => sleep(100));
     const fx = createEffect(cb);
     const chainedRoute = chainRoute({
@@ -40,7 +40,7 @@ describe('chainRoute', () => {
   });
 
   it('attach-like config in beforeOpen', async () => {
-    const route = createRoute<{ x: string }>();
+    const route = createRoute<{ x: string }>({ virtual: true });
     const cb = vi.fn(async (payload: { param: string; queryParam: string }) => {
       await sleep(100);
       return payload;
@@ -72,7 +72,7 @@ describe('chainRoute', () => {
   });
 
   it('openOn parameter', async () => {
-    const route = createRoute<{ x: string }>();
+    const route = createRoute<{ x: string }>({ virtual: true });
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
     const cancelOn = createEvent();
@@ -107,7 +107,7 @@ describe('chainRoute', () => {
   });
 
   it('cancelOn parameter', async () => {
-    const route = createRoute<{ x: string }>();
+    const route = createRoute<{ x: string }>({ virtual: true });
     const beforeOpen = createEvent<any>();
     const openOn = createEvent();
     const cancelOn = createEvent();

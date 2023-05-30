@@ -1,7 +1,7 @@
-import { Clock, combine, createStore, sample, Store, Unit } from 'effector';
+import { Clock, combine, createStore, sample, Store, Unit } from "effector";
+import { rootDomain } from "../misc/root-domain";
 
-import { RouteInstance, RouteQuery } from '../types';
-import { createRouterControls } from './create-router-controls';
+import { Route, RouteDomain, RouteQuery } from "../types";
 
 type QueryCleanupStrategy = {
   irrelevant: boolean;
@@ -9,34 +9,35 @@ type QueryCleanupStrategy = {
   preserve: string[];
 };
 
-type QuerySyncParams<T extends Record<string, Store<any>>> = {
+type QuerySyncConfig<T extends Record<string, Store<any>>> = {
   source: T;
   clock?: Clock<any>;
-  controls: ReturnType<typeof createRouterControls>;
-  route?: RouteInstance<any>;
+  domain?: RouteDomain<any>;
+  route?: Route<any>;
   cleanup?: boolean | Partial<QueryCleanupStrategy>;
 };
 
 export function querySync<T extends Record<string, Store<any>>>(
-  params: QuerySyncParams<T>
+  config: QuerySyncConfig<T>
 ) {
-  const $isOpened = params.route?.$isOpened ?? createStore(true);
-  const $source = combine(params.source);
-  const clock = (params.clock ?? $source) as Unit<any>;
-  const cleanupStrategy = !('cleanup' in params)
+  const $isOpened = config.route?.$isOpened ?? createStore<boolean>(true);
+  const $source = combine(config.source);
+  const clock = (config.clock ?? $source) as Unit<any>;
+  const domain = config.domain ?? rootDomain;
+  const cleanupStrategy = !("cleanup" in config)
     ? cleanupStrategies.default
-    : typeof params.cleanup === 'boolean'
-    ? cleanupStrategies[params.cleanup ? 'all' : 'none']
-    : { ...cleanupStrategies.default, ...params.cleanup! };
+    : typeof config.cleanup === "boolean"
+    ? cleanupStrategies[config.cleanup ? "all" : "none"]
+    : { ...cleanupStrategies.default, ...config.cleanup! };
 
   const queryUpdatedFromHistory = sample({
-    clock: params.controls.$query,
+    clock: domain.$query,
     filter: $isOpened,
   });
 
   sample({
     clock,
-    source: combine([$source, params.controls.$query]),
+    source: combine([$source, domain.$query]),
     filter: $isOpened,
     fn: ([source, currentQuery]) => {
       let nextQuery: RouteQuery = {};
@@ -61,18 +62,18 @@ export function querySync<T extends Record<string, Store<any>>>(
       }
       return nextQuery as RouteQuery;
     },
-    target: params.controls.$query,
+    target: domain.$query,
   });
 
-  for (const k in params.source) {
-    const $queryParam = params.source[k as keyof typeof params.source];
+  for (const k in config.source) {
+    const $queryParam = config.source[k as keyof typeof config.source];
     $queryParam.on(queryUpdatedFromHistory, (_, query) => {
       return query[k] ?? $queryParam.defaultState;
     });
   }
 }
 
-const cleanupStrategies = {
+export const cleanupStrategies = {
   all: {
     irrelevant: true,
     empty: true,
