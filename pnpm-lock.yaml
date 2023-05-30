@@ -28,12 +28,14 @@ specifiers:
   rollup-plugin-dts: ^4.2.2
   rollup-plugin-terser: ^7.0.2
   size-limit: ^8.0.0
+  ts-toolbelt: ^9.6.0
   tslib: ^2.4.0
   typescript: ^4.6.3
   vitest: ^0.23.2
 
 dependencies:
   path-to-regexp: 6.2.1
+  ts-toolbelt: 9.6.0
 
 devDependencies:
   '@babel/cli': 7.18.10_@babel+core@7.19.0
@@ -3254,6 +3256,10 @@ packages:
     dependencies:
       punycode: 2.1.1
     dev: true
+
+  /ts-toolbelt/9.6.0:
+    resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
+    dev: false
 
   /tslib/2.4.0:
     resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}

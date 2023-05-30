@@ -57,7 +57,8 @@
     "vitest": "^0.23.2"
   },
   "dependencies": {
-    "path-to-regexp": "^6.2.0"
+    "path-to-regexp": "^6.2.0",
+    "ts-toolbelt": "^9.6.0"
   },
   "prettier": {
     "printWidth": 80,
