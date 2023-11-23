@@ -40,14 +40,13 @@ type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
 export function redirect<T, Params extends RouteParams>(
   options: RedirectParams<T, Params>
 ) {
-  const clock = options.clock
+  const clock: Event<T> = options.clock
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
 
-  let params = toStore(options.params || {});
-  let query = toStore(options.query || {});
-  // @ts-expect-error
-  let replace = toStore(options.replace || false);
+  const params = toStore(options.params || {});
+  const query = toStore(options.query || {});
+  const replace = toStore(options.replace || false);
 
   sample({
     clock: clock,

@@ -13,6 +13,7 @@ import {
   NoInfer,
   EffectParams,
   attach,
+  UnitTargetable,
 } from 'effector';
 
 import { createRoute } from './create-route';
@@ -100,7 +101,7 @@ function normalizeChainRouteParams<
       ? effectParams.beforeOpen
       : attach(effectParams.beforeOpen),
   });
-  if (is.effect(resultParams.beforeOpen)) {
+  if (is.effect(resultParams.beforeOpen as Unit<any>)) {
     Object.assign(resultParams, {
       openOn:
         // @ts-expect-error
@@ -169,7 +170,7 @@ function chainRoute<
   // 1. Call `beforeOpen` whenever route is opened
   sample({
     clock: routeOpened,
-    target: beforeOpen as Unit<RouteParamsAndQuery<any>>,
+    target: beforeOpen as UnitTargetable<RouteParamsAndQuery<any>>,
   });
   $params.on(routeOpened, (_prev, { params }) => params);
   $query.on(routeOpened, (_prev, { query }) => query);
