@@ -66,6 +66,7 @@ export function querySync<T extends Record<string, Store<any>>>(
 
   for (const k in params.source) {
     const $queryParam = params.source[k as keyof typeof params.source];
+    // @ts-expect-error
     $queryParam.on(queryUpdatedFromHistory, (_, query) => {
       return query[k] ?? $queryParam.defaultState;
     });

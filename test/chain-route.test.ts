@@ -13,10 +13,7 @@ describe('chainRoute', () => {
     const route = createRoute();
     const chainedRoute = chainRoute(route);
     const scope = fork();
-    await allSettled(route.open, {
-      scope,
-      params: {},
-    });
+    await allSettled(route.open, { scope });
     expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
@@ -29,10 +26,7 @@ describe('chainRoute', () => {
       beforeOpen: fx,
     });
     const scope = fork();
-    const promise = allSettled(route.open, {
-      scope,
-      params: {},
-    });
+    const promise = allSettled(route.open, { scope });
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
     await promise;
     expect(cb).toBeCalledTimes(1);

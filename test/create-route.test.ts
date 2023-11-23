@@ -1,7 +1,6 @@
 import { allSettled, fork } from 'effector';
 import { describe, it, expect, vi } from 'vitest';
 import { createRoute } from '../src';
-import { describe, it, expect, vi } from 'vitest';
 
 const route = createRoute<{ postId: string }>();
 
@@ -114,7 +113,6 @@ describe('Lifecycle: .opened()', () => {
       replace: false,
       params: { postId: 'foo' },
       query: { test: 'blah' },
-      replace: false,
     });
   });
 
@@ -164,7 +162,6 @@ describe('Lifecycle: .updated()', () => {
       replace: false,
       params: { postId: 'bar' },
       query: { test: 'baz' },
-      replace: false,
     });
   });
 });
