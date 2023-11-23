@@ -11,7 +11,6 @@ import {
   createEffect,
   createEvent,
   createStore,
-  guard,
   restore,
   sample,
   scopeBind,
@@ -228,7 +227,7 @@ export const createHistoryRouter = (params: {
   // });
 
   // Trigger 404 if no routes were opened
-  guard({
+  sample({
     clock: recalculateFx.doneData,
     filter: ({ opened }) => opened.length === 0,
     target: routeNotFound,
@@ -270,15 +269,15 @@ export const createHistoryRouter = (params: {
     };
 
     const recheckLifecycle = {
-      opened: guard({
+      opened: sample({
         clock: routesOpened.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened.map((isOpened) => !isOpened),
       }),
-      updated: guard({
+      updated: sample({
         clock: routesOpened.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened,
       }),
-      closed: guard({
+      closed: sample({
         clock: routesClosed.filterMap(containsCurrentRoute),
         filter: routeObj.route.$isOpened,
       }),
@@ -288,29 +287,30 @@ export const createHistoryRouter = (params: {
     $isOpenedManually.on(navigatedManually, () => true);
 
     // Trigger .updated() for already opened routes marked as "opened"
-    const updated = guard({
+    const updated = sample({
       clock: recheckLifecycle.updated,
       filter: $isOpenedManually.map((isOpenedManually) => !isOpenedManually),
     });
 
     sample({
-      source: restore(updated, null),
-      clock: guard({
-        clock: updated,
-        source: [routeObj.route.$params, routeObj.route.$query],
-        // Skip .updated() calls if params & query are the same
-        filter([params, query], next) {
-          return (
-            !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
-          );
-        },
-      }),
-      fn: (payload) => payload!,
+      source: [
+        routeObj.route.$params,
+        routeObj.route.$query,
+        restore(updated, null),
+      ] as const,
+      clock: updated,
+      // Skip .updated() calls if params & query are the same
+      filter([params, query], next) {
+        return (
+          !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
+        );
+      },
+      fn: ([, , payload]) => payload!,
       target: routeObj.route.updated,
     });
 
     // Trigger .opened() for the routes marked as "opened"
-    guard({
+    sample({
       clock: recheckLifecycle.opened,
       filter: $isOpenedManually.map((isOpenedManually) => !isOpenedManually),
       target: routeObj.route.opened,
@@ -415,11 +415,9 @@ export const createHistoryRouter = (params: {
   $isFirstCheckPassed.on(recalculateFx.doneData, () => true).reset($history);
 
   const initialized = sample({
-    clock: guard({
-      clock: $isFirstCheckPassed,
-      filter: Boolean,
-    }),
     source: { activeRoutes: $activeRoutes, path: $path, query: $query },
+    clock: $isFirstCheckPassed,
+    filter: (_, isFirstCheckPassed) => isFirstCheckPassed,
   });
 
   return {
