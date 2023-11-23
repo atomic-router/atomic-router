@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { matchPath } from '../src';
-import { describe, it, expect } from 'vitest';
 
 const cases = {
   simple: {
