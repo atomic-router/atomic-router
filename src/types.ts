@@ -1,5 +1,5 @@
 import { History } from 'history';
-import { Effect, Event, Store } from 'effector';
+import { Effect, Store, EventCallable } from 'effector';
 
 export type RouteParams = Record<string, any>;
 
@@ -19,9 +19,9 @@ export type RouteInstance<Params extends RouteParams> = {
   $isOpened: Store<boolean>;
   $params: Store<Params>;
   $query: Store<RouteQuery>;
-  opened: Event<RouteParamsAndQuery<Params>>;
-  updated: Event<RouteParamsAndQuery<Params>>;
-  closed: Event<void>;
+  opened: EventCallable<RouteParamsAndQuery<Params>>;
+  updated: EventCallable<RouteParamsAndQuery<Params>>;
+  closed: EventCallable<void>;
   navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
   open: Effect<
     Params extends EmptyObject ? void : Params,
