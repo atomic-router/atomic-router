@@ -96,7 +96,7 @@ import { getPostFx } from './model';
 
 const postPage = createRoute<{ postId: string }>();
 
-guard({
+sample({
   source: postPage.$params,
   filter: postPage.$isOpened,
   target: getPostFx,

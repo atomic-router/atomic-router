@@ -1,6 +1,5 @@
 import {
   is,
-  guard,
   merge,
   sample,
   combine,
@@ -175,8 +174,8 @@ function chainRoute<
   $params.on(routeOpened, (_prev, { params }) => params);
   $query.on(routeOpened, (_prev, { query }) => query);
   // 2. Listen to `openOn` if route is still opened on the same position
-  const chainedRouteResolved = guard({
-    clock: openOn,
+  const chainedRouteResolved = sample({
+    clock: openOn as Unit<any>,
     source: { params: $params, query: $query },
     filter: $hasSameParams,
   });
