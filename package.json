@@ -1,10 +1,19 @@
 {
   "version": "0.0.0-this-version-will-be-set-from-ci",
   "license": "MIT",
-  "main": "dist/atomic-router.cjs.js",
-  "module": "dist/atomic-router.esm.js",
+  "main": "dist/atomic-router.js",
+  "module": "dist/atomic-router.mjs",
   "unpkg": "dist/atomic-router.umd.js",
   "types": "dist/atomic-router.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/atomic-router.d.ts",
+      "import": "./dist/atomic-router.mjs",
+      "require": "./dist/atomic-router.js",
+      "node": "./dist/atomic-router.js",
+      "default": "./dist/atomic-router.mjs"
+    }
+  },
   "files": [
     "dist",
     "babel-preset.js"
