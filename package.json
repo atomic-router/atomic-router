@@ -7,7 +7,6 @@
   "types": "dist/atomic-router.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/atomic-router.d.ts",
       "import": "./dist/atomic-router.mjs",
       "require": "./dist/atomic-router.js",
       "node": "./dist/atomic-router.js",

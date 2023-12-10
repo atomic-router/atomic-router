@@ -85,6 +85,10 @@ export default [
         file: pkg.types,
         format: 'es',
       },
+      {
+        file: pkg.types.replace('.d.ts', '.d.mts'),
+        format: 'es',
+      },
     ],
     plugins: [resolverPlugin, dts()],
   },
