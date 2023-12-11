@@ -1,4 +1,6 @@
 {
+  "name": "atomic-router",
+  "author": "Anton Kosykh",
   "version": "0.0.0-this-version-will-be-set-from-ci",
   "license": "MIT",
   "main": "dist/atomic-router.cjs.js",
@@ -8,6 +10,11 @@
   "files": [
     "dist",
     "babel-preset.js"
+  ],
+  "contributors": [
+    "Anton Kosykh",
+    "Sergey Sova <mail@sergeysova.com>",
+    "Zero Bias <ribkatt@gmail.com>"
   ],
   "engines": {
     "node": ">=10"
@@ -20,6 +27,10 @@
     "prepare": "pnpm build",
     "lint": "prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,md}\"",
     "format": "prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,md}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atomic-router/atomic-router"
   },
   "peerDependencies": {
     "effector": "^22.8.8 || ^23",
@@ -57,18 +68,6 @@
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0"
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "name": "atomic-router",
-  "author": "Anton Kosykh",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kelin2025/atomic-router"
   },
   "size-limit": [
     {
