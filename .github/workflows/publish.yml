@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -30,13 +30,13 @@ jobs:
         id: version
         uses: olegtarasov/get-tag@v2.1
         with:
-          tagRegex: 'v(.*)'
+          tagRegex: "v(.*)"
 
       - name: Set version from release
         uses: reedyuk/npm-version@1.1.1
         with:
           version: ${{ steps.version.outputs.tag }}
-          git-tag-version: 'false'
+          git-tag-version: "false"
 
       - name: Create NPM config
         run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
@@ -48,14 +48,14 @@ jobs:
         uses: actions-ecosystem/action-regex-match@v2
         with:
           text: ${{ steps.version.outputs.tag }}
-          regex: '-next'
+          regex: "-next"
 
       - name: Check for RC tag
         id: rc
         uses: actions-ecosystem/action-regex-match@v2
         with:
           text: ${{ steps.version.outputs.tag }}
-          regex: '-rc'
+          regex: "-rc"
 
       - name: Publish atomic-router@${{ steps.version.outputs.tag }} with NEXT tag
         if: ${{ steps.next.outputs.match != '' }}
@@ -66,6 +66,5 @@ jobs:
         run: npm publish --tag rc
 
       - name: Publish atomic-router@${{ steps.version.outputs.tag }} to latest
-        if: ${{ steps.next.outputs.match == '' }}
+        if: ${{ steps.next.outputs.match == '' && steps.rc.outputs.match != '' }}
         run: npm publish
-
