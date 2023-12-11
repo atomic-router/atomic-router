@@ -26,6 +26,9 @@ jobs:
       - name: Build package
         run: pnpm build
 
+      - name: Publint check
+        run: pnpm publint ./
+
       - name: Extract version from release
         id: version
         uses: olegtarasov/get-tag@v2.1
