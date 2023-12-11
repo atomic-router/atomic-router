@@ -7,6 +7,16 @@
   "module": "dist/atomic-router.esm.js",
   "unpkg": "dist/atomic-router.umd.js",
   "types": "dist/atomic-router.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/atomic-router.d.ts",
+      "import": "./dist/atomic-router.esm.js",
+      "require": "./dist/atomic-router.cjs.js",
+      "node": "./dist/atomic-router.cjs.js",
+      "default": "./dist/atomic-router.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "babel-preset.js"
