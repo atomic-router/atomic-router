@@ -1,7 +1,7 @@
-import { createEvent, createStore } from 'effector';
+import { createEvent, createStore } from "effector";
 
-import { RouteQuery } from '../types';
-import { paramsEqual } from '../utils/equals';
+import { RouteQuery } from "../types";
+import { paramsEqual } from "../utils/equals";
 
 export const createRouterControls = () => {
   return {

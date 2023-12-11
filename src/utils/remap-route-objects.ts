@@ -1,9 +1,6 @@
-import { UnmappedRouteObject, RouteObject } from '../types';
+import { UnmappedRouteObject, RouteObject } from "../types";
 
-export function remapRouteObjects(
-  objects: UnmappedRouteObject<any>[],
-  basePath: string = ''
-) {
+export function remapRouteObjects(objects: UnmappedRouteObject<any>[], basePath: string = "") {
   let next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {

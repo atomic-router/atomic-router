@@ -1,11 +1,6 @@
-import { match, compile } from 'path-to-regexp';
+import { match, compile } from "path-to-regexp";
 
-import {
-  RouteParams,
-  PathCreator,
-  RouteQuery,
-  ParamsSerializer,
-} from '../types';
+import { RouteParams, PathCreator, RouteQuery, ParamsSerializer } from "../types";
 
 // NOTE: If path is URL - provide it as is
 // Otherwise - extract pathname and hash
@@ -14,13 +9,13 @@ const getComparablePath = (path: string) => {
     return path;
   }
   const url = new URL(`http://_${path}`);
-  return [url.pathname, url.hash].join('');
+  return [url.pathname, url.hash].join("");
 };
 
 // NOTE: path-to-regexp treats ":" in "https://" as param start
 // So we escape it
 function normalizePathCreator(pathCreator: string) {
-  return pathCreator.replace('://', '\\://');
+  return pathCreator.replace("://", "\\://");
 }
 
 type BuildPathParams<Params extends RouteParams> = {
@@ -36,9 +31,8 @@ export function buildPath<Params extends RouteParams>({
   serialize,
 }: BuildPathParams<Params>) {
   const pathname = compile(pathCreator)(params);
-  const serializedParams =
-    serialize?.write(query) ?? new URLSearchParams(query);
-  const qs = Object.keys(query).length ? `?${serializedParams}` : '';
+  const serializedParams = serialize?.write(query) ?? new URLSearchParams(query);
+  const qs = Object.keys(query).length ? `?${serializedParams}` : "";
   const url = `${pathname}${qs}`;
   return url;
 }
@@ -51,9 +45,7 @@ export function matchPath<Params extends RouteParams>({
   pathCreator,
   actualPath,
 }: MatchPathParams<Params>) {
-  const matches = match(normalizePathCreator(pathCreator))(
-    getComparablePath(actualPath)
-  );
+  const matches = match(normalizePathCreator(pathCreator))(getComparablePath(actualPath));
   if (matches) {
     return { matches: true, params: matches.params } as const;
   }

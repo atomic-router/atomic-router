@@ -1,6 +1,6 @@
-import { History } from 'history';
-import { attach, createEvent, createStore, sample, scopeBind } from 'effector';
-import { createRouterControls } from './create-router-controls';
+import { History } from "history";
+import { attach, createEvent, createStore, sample, scopeBind } from "effector";
+import { createRouterControls } from "./create-router-controls";
 import {
   HistoryPushParams,
   ParamsSerializer,
@@ -9,17 +9,13 @@ import {
   RouteParams,
   RouteQuery,
   UnmappedRouteObject,
-} from '../types';
-import { remapRouteObjects } from '../utils/remap-route-objects';
-import { paramsEqual } from '../utils/equals';
-import { buildPath, matchPath } from '../utils/build-path';
-import { isRoute } from './is-route';
-import {
-  historyBackFx,
-  historyForwardFx,
-  historyPushFx,
-} from '../utils/history-effects';
-import { not } from '../utils/logic';
+} from "../types";
+import { remapRouteObjects } from "../utils/remap-route-objects";
+import { paramsEqual } from "../utils/equals";
+import { buildPath, matchPath } from "../utils/build-path";
+import { isRoute } from "./is-route";
+import { historyBackFx, historyForwardFx, historyPushFx } from "../utils/history-effects";
+import { not } from "../utils/logic";
 
 export function createHistoryRouter({
   base,
@@ -66,27 +62,27 @@ export function createHistoryRouter({
     query: RouteQuery;
   }>();
 
-  const $path = createStore('');
+  const $path = createStore("");
   const $query = createStore<RouteQuery>(
     {},
     {
-      name: 'historyRouter.$query',
+      name: "historyRouter.$query",
       updateFilter: (newQuery, oldQuery) => !paramsEqual(newQuery, oldQuery),
     }
   );
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
-    serialize: 'ignore',
+    serialize: "ignore",
   });
   // @ts-expect-error
   const $history = createStore<History>(null, {
-    serialize: 'ignore',
+    serialize: "ignore",
   });
   const $isFirstCheckPassed = createStore(false);
   const $isRouteNavigateInProgress = createStore(false);
 
   const pushFx = attach({
     source: $history,
-    effect(history, params: Omit<HistoryPushParams, 'history'>) {
+    effect(history, params: Omit<HistoryPushParams, "history">) {
       return historyPushFx({
         history,
         ...params,
@@ -110,9 +106,7 @@ export function createHistoryRouter({
   });
 
   const historyUpdatedParsed = sample({
-    clock: hydrate
-      ? [historyUpdated]
-      : [historyUpdated, subscribeHistoryFx.done],
+    clock: hydrate ? [historyUpdated] : [historyUpdated, subscribeHistoryFx.done],
     source: $history,
     filter: Boolean,
     fn: (history) => ({
@@ -161,12 +155,8 @@ export function createHistoryRouter({
 
   /// Routes updates handling
   for (const routeObj of remappedRoutes) {
-    const currentRouteMatched = routesMatched.filterMap(
-      containsCurrentRoute(routeObj)
-    );
-    const currentRouteMismatched = routesMismatched.filterMap(
-      containsCurrentRoute(routeObj)
-    );
+    const currentRouteMatched = routesMatched.filterMap(containsCurrentRoute(routeObj));
+    const currentRouteMismatched = routesMismatched.filterMap(containsCurrentRoute(routeObj));
     const routeStateChangeRequested = {
       opened: sample({
         clock: currentRouteMatched,
@@ -234,7 +224,7 @@ export function createHistoryRouter({
         query,
         serialize,
       });
-      const method: 'replace' | 'push' = replace ? 'replace' : 'push';
+      const method: "replace" | "push" = replace ? "replace" : "push";
       return {
         path,
         params,
@@ -257,9 +247,7 @@ export function createHistoryRouter({
 
       for (const route of remappedRoutes) {
         // NOTE: Use hash string as well if route.path contains #
-        const actualPath = route.path.includes('#')
-          ? `${path}${hash}`
-          : `${path}`;
+        const actualPath = route.path.includes("#") ? `${path}${hash}` : `${path}`;
         const { matches, params } = matchPath({
           pathCreator: route.path,
           actualPath,
@@ -277,8 +265,7 @@ export function createHistoryRouter({
       // Remove all that are marked to be opened
       mismatchingRoutes.forEach((mismatchedRoute, mismatchedIndex) => {
         const mismatchedRouteExistsInMatchedList = matchingRoutes.some(
-          (matchedRoute) =>
-            matchedRoute.routeObj.route === mismatchedRoute.routeObj.route
+          (matchedRoute) => matchedRoute.routeObj.route === mismatchedRoute.routeObj.route
         );
         if (mismatchedRouteExistsInMatchedList) {
           mismatchingRoutes.splice(mismatchedIndex, 1);
@@ -366,8 +353,7 @@ export function createHistoryRouter({
   sample({
     clock: $query,
     source: { controlsQuery: controls.$query, localQuery: $query },
-    filter: ({ controlsQuery, localQuery }) =>
-      !paramsEqual(controlsQuery, localQuery),
+    filter: ({ controlsQuery, localQuery }) => !paramsEqual(controlsQuery, localQuery),
     fn: ({ localQuery }) => localQuery,
     target: controls.$query,
   });
@@ -382,23 +368,19 @@ export function createHistoryRouter({
     },
     filter: ({ localQuery, isNavigateInProgress, realHistory }, query) => {
       const realQuery =
-        serialize?.read(realHistory?.location.search ?? '') ??
-        Object.fromEntries(
-          new URLSearchParams(realHistory?.location.search ?? '')
-        );
+        serialize?.read(realHistory?.location.search ?? "") ??
+        Object.fromEntries(new URLSearchParams(realHistory?.location.search ?? ""));
       return (
-        isNavigateInProgress ||
-        !paramsEqual(query, realQuery) ||
-        !paramsEqual(localQuery, query)
+        isNavigateInProgress || !paramsEqual(query, realQuery) || !paramsEqual(localQuery, query)
       );
     },
     fn({ path }, query) {
       const qs = serialize?.write(query) ?? new URLSearchParams(query);
       return {
-        path: `${path}${qs ? `?${qs}` : ''}`,
+        path: `${path}${qs ? `?${qs}` : ""}`,
         params: {},
         query: query,
-        method: 'push' as const,
+        method: "push" as const,
       };
     },
     target: pushFx,
@@ -412,9 +394,7 @@ export function createHistoryRouter({
       path: $path,
       query: $query,
     },
-    filter: $isFirstCheckPassed.map(
-      (isFirstCheckPassed) => !isFirstCheckPassed
-    ),
+    filter: $isFirstCheckPassed.map((isFirstCheckPassed) => !isFirstCheckPassed),
     target: initialized,
   });
 
@@ -442,8 +422,7 @@ type RecalculationResult<Params extends RouteParams> = {
 };
 
 const containsCurrentRoute =
-  (routeObj: RouteObject<any>) =>
-  (recheckResults: RecalculationResult<any>[]) => {
+  (routeObj: RouteObject<any>) => (recheckResults: RecalculationResult<any>[]) => {
     const recheck = recheckResults.find(
       (recheckResult) => recheckResult.routeObj.route === routeObj.route
     );

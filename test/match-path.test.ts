@@ -1,32 +1,26 @@
-import { describe, it, expect } from 'vitest';
-import { matchPath } from '../src';
+import { describe, it, expect } from "vitest";
+import { matchPath } from "../src";
 
 const cases = {
   simple: {
-    shouldMatch: [['/foo/:testId', '/foo/test', { testId: 'test' }]],
-    shouldNotMatch: [['/foo/:testId', '/bar']],
+    shouldMatch: [["/foo/:testId", "/foo/test", { testId: "test" }]],
+    shouldNotMatch: [["/foo/:testId", "/bar"]],
   },
   hashed: {
-    shouldMatch: [['/#/foo/:testId', '/#/foo/test', { testId: 'test' }]],
-    shouldNotMatch: [['/#/foo/:testId', '/#/bar']],
+    shouldMatch: [["/#/foo/:testId", "/#/foo/test", { testId: "test" }]],
+    shouldNotMatch: [["/#/foo/:testId", "/#/bar"]],
   },
   full: {
     shouldMatch: [
-      [
-        'https://example.com/foo/:testId',
-        'https://example.com/foo/test',
-        { testId: 'test' },
-      ],
+      ["https://example.com/foo/:testId", "https://example.com/foo/test", { testId: "test" }],
     ],
-    shouldNotMatch: [
-      ['https://example.com/foo/:testId', 'https://example.com/bar'],
-    ],
+    shouldNotMatch: [["https://example.com/foo/:testId", "https://example.com/bar"]],
   },
 } as const;
 
-describe('Simple paths', () => {
+describe("Simple paths", () => {
   for (const [pathCreator, actualPath, params] of cases.simple.shouldMatch) {
-    it('Match: path ' + pathCreator, () => {
+    it("Match: path " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: true,
         params,
@@ -34,7 +28,7 @@ describe('Simple paths', () => {
     });
   }
   for (const [pathCreator, actualPath] of cases.simple.shouldNotMatch) {
-    it('No match: path ' + pathCreator, () => {
+    it("No match: path " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: false,
       });
@@ -42,9 +36,9 @@ describe('Simple paths', () => {
   }
 });
 
-describe('Hashed paths', () => {
+describe("Hashed paths", () => {
   for (const [pathCreator, actualPath, params] of cases.hashed.shouldMatch) {
-    it('Match: path ' + pathCreator, () => {
+    it("Match: path " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: true,
         params,
@@ -52,7 +46,7 @@ describe('Hashed paths', () => {
     });
   }
   for (const [pathCreator, actualPath] of cases.hashed.shouldNotMatch) {
-    it('No match: path ' + pathCreator, () => {
+    it("No match: path " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: false,
       });
@@ -60,9 +54,9 @@ describe('Hashed paths', () => {
   }
 });
 
-describe('Full paths', () => {
+describe("Full paths", () => {
   for (const [pathCreator, actualPath, params] of cases.full.shouldMatch) {
-    it('Match: ' + pathCreator, () => {
+    it("Match: " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: true,
         params,
@@ -70,7 +64,7 @@ describe('Full paths', () => {
     });
   }
   for (const [pathCreator, actualPath] of cases.full.shouldNotMatch) {
-    it('No match: ' + pathCreator, () => {
+    it("No match: " + pathCreator, () => {
       expect(matchPath({ pathCreator, actualPath })).toEqual({
         matches: false,
       });

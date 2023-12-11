@@ -1,7 +1,7 @@
-import { Clock, combine, createStore, sample, Store, Unit } from 'effector';
+import { Clock, combine, createStore, sample, Store, Unit } from "effector";
 
-import { RouteInstance, RouteQuery } from '../types';
-import { createRouterControls } from './create-router-controls';
+import { RouteInstance, RouteQuery } from "../types";
+import { createRouterControls } from "./create-router-controls";
 
 type QueryCleanupStrategy = {
   irrelevant: boolean;
@@ -17,16 +17,14 @@ type QuerySyncParams<T extends Record<string, Store<any>>> = {
   cleanup?: boolean | Partial<QueryCleanupStrategy>;
 };
 
-export function querySync<T extends Record<string, Store<any>>>(
-  params: QuerySyncParams<T>
-) {
+export function querySync<T extends Record<string, Store<any>>>(params: QuerySyncParams<T>) {
   const $isOpened = params.route?.$isOpened ?? createStore(true);
   const $source = combine(params.source);
   const clock = (params.clock ?? $source) as Unit<any>;
-  const cleanupStrategy = !('cleanup' in params)
+  const cleanupStrategy = !("cleanup" in params)
     ? cleanupStrategies.default
-    : typeof params.cleanup === 'boolean'
-    ? cleanupStrategies[params.cleanup ? 'all' : 'none']
+    : typeof params.cleanup === "boolean"
+    ? cleanupStrategies[params.cleanup ? "all" : "none"]
     : { ...cleanupStrategies.default, ...params.cleanup! };
 
   const queryUpdatedFromHistory = sample({

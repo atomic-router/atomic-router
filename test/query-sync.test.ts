@@ -1,13 +1,8 @@
-import { createMemoryHistory } from 'history';
-import { describe, it, expect } from 'vitest';
-import { allSettled, createEvent, createStore, fork, restore } from 'effector';
+import { createMemoryHistory } from "history";
+import { describe, it, expect } from "vitest";
+import { allSettled, createEvent, createStore, fork, restore } from "effector";
 
-import {
-  createRoute,
-  createHistoryRouter,
-  querySync,
-  createRouterControls,
-} from '../src';
+import { createRoute, createHistoryRouter, querySync, createRouterControls } from "../src";
 
 const createRouter = () => {
   const route = createRoute();
@@ -19,10 +14,10 @@ const createRouter = () => {
 
   const router = createHistoryRouter({
     routes: [
-      { path: '/', route },
-      { path: '/not-opened', route: notOpenedRoute },
-      { path: '/a', route: routeA },
-      { path: '/b', route: routeB },
+      { path: "/", route },
+      { path: "/not-opened", route: notOpenedRoute },
+      { path: "/a", route: routeA },
+      { path: "/b", route: routeB },
     ],
     controls,
   });
@@ -30,11 +25,11 @@ const createRouter = () => {
   return { router, controls, route, routeA, routeB, notOpenedRoute };
 };
 
-describe('querySync', () => {
-  it('Updates query when source is changed', async () => {
+describe("querySync", () => {
+  it("Updates query when source is changed", async () => {
     const { router, controls } = createRouter();
     const qChanged = createEvent<string>();
-    const $q = restore(qChanged, '');
+    const $q = restore(qChanged, "");
 
     querySync({
       source: { fromSource: $q },
@@ -49,18 +44,18 @@ describe('querySync', () => {
     });
     await allSettled(qChanged, {
       scope,
-      params: 'test',
+      params: "test",
     });
 
     expect(scope.getState(controls.$query)).toEqual({
-      fromSource: 'test',
+      fromSource: "test",
     });
     expect(history.location.search).toEqual(`?fromSource=test`);
   });
 
-  it('Updates source when query is changed', async () => {
+  it("Updates source when query is changed", async () => {
     const { router, controls } = createRouter();
-    const $q = createStore('');
+    const $q = createStore("");
 
     querySync({
       source: { fromQuery: $q },
@@ -73,15 +68,15 @@ describe('querySync', () => {
       scope,
       params: history,
     });
-    history.push('/?fromQuery=foo');
+    history.push("/?fromQuery=foo");
 
-    expect(scope.getState($q)).toEqual('foo');
+    expect(scope.getState($q)).toEqual("foo");
   });
 
-  it('Sets source to defaultState if query param is missing', async () => {
+  it("Sets source to defaultState if query param is missing", async () => {
     const { router, controls } = createRouter();
     const qChanged = createEvent<string>();
-    const $q = createStore('defaultState');
+    const $q = createStore("defaultState");
 
     $q.on(qChanged, (prev, next) => next);
 
@@ -98,17 +93,17 @@ describe('querySync', () => {
     });
     await allSettled(qChanged, {
       scope,
-      params: 'bar',
+      params: "bar",
     });
-    history.push('/?anotherQueryParam=test');
+    history.push("/?anotherQueryParam=test");
 
-    expect(scope.getState($q)).toEqual('defaultState');
+    expect(scope.getState($q)).toEqual("defaultState");
   });
 
-  it('Ignore source updates if passed route is not opened', async () => {
+  it("Ignore source updates if passed route is not opened", async () => {
     const { router, controls, notOpenedRoute } = createRouter();
     const qChanged = createEvent<string>();
-    const $q = restore(qChanged, '');
+    const $q = restore(qChanged, "");
 
     querySync({
       source: { shouldBeIgnored: $q },
@@ -124,15 +119,15 @@ describe('querySync', () => {
     });
     await allSettled(qChanged, {
       scope,
-      params: 'test',
+      params: "test",
     });
 
-    expect(history.location.search).toEqual('');
+    expect(history.location.search).toEqual("");
   });
 
-  it('Ignore history updates if passed route is not opened', async () => {
+  it("Ignore history updates if passed route is not opened", async () => {
     const { router, controls, notOpenedRoute } = createRouter();
-    const $q = createStore('');
+    const $q = createStore("");
 
     querySync({
       source: { q: $q },
@@ -146,16 +141,16 @@ describe('querySync', () => {
       scope,
       params: history,
     });
-    history.push('/?foo=bar');
+    history.push("/?foo=bar");
 
-    expect(scope.getState($q)).toEqual('');
+    expect(scope.getState($q)).toEqual("");
   });
 
-  it('Triggers history updates only on `clock` trigger (if present)', async () => {
+  it("Triggers history updates only on `clock` trigger (if present)", async () => {
     const { router, controls } = createRouter();
     const qChanged = createEvent<string>();
     const clock = createEvent();
-    const $q = restore(qChanged, '');
+    const $q = restore(qChanged, "");
 
     querySync({
       source: { q: $q },
@@ -171,26 +166,26 @@ describe('querySync', () => {
     });
     await allSettled(qChanged, {
       scope,
-      params: 'test',
+      params: "test",
     });
     await allSettled(qChanged, {
       scope,
-      params: 'bar',
+      params: "bar",
     });
 
-    expect(history.location.search).toEqual('');
+    expect(history.location.search).toEqual("");
 
     await allSettled(clock, {
       scope,
     });
-    expect(history.location.search).toEqual('?q=bar');
+    expect(history.location.search).toEqual("?q=bar");
   });
 
-  describe('cleanup.irrelevant option', () => {
-    it('Removes irrelevant params if set to true', async () => {
+  describe("cleanup.irrelevant option", () => {
+    it("Removes irrelevant params if set to true", async () => {
       const { router, controls, routeA } = createRouter();
       const qChanged = createEvent<string>();
-      const $q = restore(qChanged, '');
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q },
@@ -207,22 +202,22 @@ describe('querySync', () => {
         scope,
         params: history,
       });
-      history.push('/a?foo=bar');
+      history.push("/a?foo=bar");
 
-      expect(history.location.search).toEqual('?foo=bar');
+      expect(history.location.search).toEqual("?foo=bar");
 
       await allSettled(qChanged, {
         scope,
-        params: 'test',
+        params: "test",
       });
 
-      expect(history.location.search).toEqual('?q=test');
+      expect(history.location.search).toEqual("?q=test");
     });
 
-    it('Keeps irrelevant params if set to false', async () => {
+    it("Keeps irrelevant params if set to false", async () => {
       const { router, controls, routeA } = createRouter();
       const qChanged = createEvent<string>();
-      const $q = restore(qChanged, '');
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q },
@@ -239,22 +234,22 @@ describe('querySync', () => {
         scope,
         params: history,
       });
-      history.push('/a?foo=bar');
+      history.push("/a?foo=bar");
 
-      expect(history.location.search).toEqual('?foo=bar');
+      expect(history.location.search).toEqual("?foo=bar");
 
       await allSettled(qChanged, {
         scope,
-        params: 'test',
+        params: "test",
       });
 
-      expect(history.location.search).toEqual('?foo=bar&q=test');
+      expect(history.location.search).toEqual("?foo=bar&q=test");
     });
 
-    it('Keeps params passed to `preserve`', async () => {
+    it("Keeps params passed to `preserve`", async () => {
       const { router, controls, routeA } = createRouter();
       const qChanged = createEvent<string>();
-      const $q = restore(qChanged, '');
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q },
@@ -262,7 +257,7 @@ describe('querySync', () => {
         controls,
         cleanup: {
           irrelevant: true,
-          preserve: ['foo'],
+          preserve: ["foo"],
         },
       });
 
@@ -272,24 +267,24 @@ describe('querySync', () => {
         scope,
         params: history,
       });
-      history.push('/a?foo=bar&bar=baz');
+      history.push("/a?foo=bar&bar=baz");
 
-      expect(history.location.search).toEqual('?foo=bar&bar=baz');
+      expect(history.location.search).toEqual("?foo=bar&bar=baz");
 
       await allSettled(qChanged, {
         scope,
-        params: 'test',
+        params: "test",
       });
 
-      expect(history.location.search).toEqual('?foo=bar&q=test');
+      expect(history.location.search).toEqual("?foo=bar&q=test");
     });
   });
 
-  describe('cleanup.empty option', () => {
-    it('Removes empty params if set to true', async () => {
+  describe("cleanup.empty option", () => {
+    it("Removes empty params if set to true", async () => {
       const { router, controls } = createRouter();
       const qChanged = createEvent<string>();
-      const $q = restore(qChanged, '');
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q },
@@ -307,23 +302,23 @@ describe('querySync', () => {
       });
       await allSettled(qChanged, {
         scope,
-        params: 'f',
+        params: "f",
       });
 
-      expect(history.location.search).toEqual('?q=f');
+      expect(history.location.search).toEqual("?q=f");
 
       await allSettled(qChanged, {
         scope,
-        params: '',
+        params: "",
       });
 
-      expect(history.location.search).toEqual('?');
+      expect(history.location.search).toEqual("?");
     });
 
-    it('Passes empty params if set to false', async () => {
+    it("Passes empty params if set to false", async () => {
       const { router, controls } = createRouter();
       const qChanged = createEvent<string>();
-      const $q = restore(qChanged, '');
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q },
@@ -341,32 +336,32 @@ describe('querySync', () => {
       });
       await allSettled(qChanged, {
         scope,
-        params: 'f',
+        params: "f",
       });
 
-      expect(history.location.search).toEqual('?q=f');
+      expect(history.location.search).toEqual("?q=f");
 
       await allSettled(qChanged, {
         scope,
-        params: '',
+        params: "",
       });
 
-      expect(history.location.search).toEqual('?q=');
+      expect(history.location.search).toEqual("?q=");
     });
 
-    it('Preserves empty params if they are present in cleanup.preserve', async () => {
+    it("Preserves empty params if they are present in cleanup.preserve", async () => {
       const { router, controls } = createRouter();
       const fooChanged = createEvent<string>();
       const qChanged = createEvent<string>();
-      const $foo = restore(qChanged, '');
-      const $q = restore(qChanged, '');
+      const $foo = restore(qChanged, "");
+      const $q = restore(qChanged, "");
 
       querySync({
         source: { q: $q, foo: $foo },
         controls,
         cleanup: {
           empty: true,
-          preserve: ['q'],
+          preserve: ["q"],
         },
       });
 
@@ -378,21 +373,21 @@ describe('querySync', () => {
       });
       await allSettled(qChanged, {
         scope,
-        params: 'f',
+        params: "f",
       });
       await allSettled(fooChanged, {
         scope,
-        params: 'f',
+        params: "f",
       });
 
-      expect(history.location.search).toEqual('?q=f&foo=f');
+      expect(history.location.search).toEqual("?q=f&foo=f");
 
       await allSettled(qChanged, {
         scope,
-        params: '',
+        params: "",
       });
 
-      expect(history.location.search).toEqual('?q=');
+      expect(history.location.search).toEqual("?q=");
     });
   });
 });

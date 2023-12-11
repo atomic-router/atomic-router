@@ -1,11 +1,6 @@
-import { buildPath, matchPath } from '../utils/build-path';
-import { History } from 'history';
-import {
-  ParamsSerializer,
-  RouteInstance,
-  RouteParams,
-  RouteQuery,
-} from '../types';
+import { buildPath, matchPath } from "../utils/build-path";
+import { History } from "history";
+import { ParamsSerializer, RouteInstance, RouteParams, RouteQuery } from "../types";
 import {
   attach,
   createEffect,
@@ -14,9 +9,9 @@ import {
   restore,
   sample,
   scopeBind,
-} from 'effector';
-import { paramsEqual } from '../utils/equals';
-import { isRoute } from './is-route';
+} from "effector";
+import { paramsEqual } from "../utils/equals";
+import { isRoute } from "./is-route";
 
 type RouteObject<Params extends RouteParams> = {
   route: RouteInstance<Params>;
@@ -33,23 +28,18 @@ type HistoryPushParams = {
   path: string;
   params: RouteParams;
   query: RouteQuery;
-  method: 'replace' | 'push';
+  method: "replace" | "push";
 };
 
-const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
-  (pushParams) => {
-    if (!pushParams.history) {
-      throw new Error('[Routing] No history provided');
-    }
-    pushParams.history[pushParams.method](pushParams.path, {});
-    return pushParams;
+const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>((pushParams) => {
+  if (!pushParams.history) {
+    throw new Error("[Routing] No history provided");
   }
-);
+  pushParams.history[pushParams.method](pushParams.path, {});
+  return pushParams;
+});
 
-const remapRouteObjects = (
-  objects: UnmappedRouteObject<any>[],
-  basePath: string = ''
-) => {
+const remapRouteObjects = (objects: UnmappedRouteObject<any>[], basePath: string = "") => {
   let next: RouteObject<any>[] = [];
   for (const routeObj of objects) {
     if (Array.isArray(routeObj.route)) {
@@ -90,7 +80,7 @@ export const createHistoryRouter = (params: {
   hydrate?: boolean;
   serialize?: ParamsSerializer;
 }) => {
-  type PushParams = Omit<HistoryPushParams, 'history'>;
+  type PushParams = Omit<HistoryPushParams, "history">;
   type EnterParams<Params extends RouteParams> = {
     route: RouteObject<Params>;
     params: Params;
@@ -111,15 +101,15 @@ export const createHistoryRouter = (params: {
   const routeNotFound = createEvent();
 
   const $query = createStore({});
-  const $path = createStore('');
+  const $path = createStore("");
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
-    serialize: 'ignore',
+    serialize: "ignore",
   });
   const $isFirstCheckPassed = createStore(false);
 
   // @ts-expect-error
   const $history = createStore<History>(null, {
-    serialize: 'ignore',
+    serialize: "ignore",
   });
 
   $history.on(setHistory, (_, nextHistory) => nextHistory);
@@ -151,7 +141,7 @@ export const createHistoryRouter = (params: {
         path,
         params,
         query,
-        method: replace ? 'replace' : 'push',
+        method: replace ? "replace" : "push",
       };
     }
   );
@@ -174,9 +164,7 @@ export const createHistoryRouter = (params: {
 
       for (const route of remappedRoutes) {
         // NOTE: Use hash string as well if route.path contains #
-        const actualPath = route.path.includes('#')
-          ? `${path}${hash}`
-          : `${path}`;
+        const actualPath = route.path.includes("#") ? `${path}${hash}` : `${path}`;
         const { matches, params } = matchPath({
           pathCreator: `${route.path}`,
           actualPath: actualPath,
@@ -193,11 +181,7 @@ export const createHistoryRouter = (params: {
       for (const idx in closed) {
         // @ts-expect-error
         const closedIdx = idx as number;
-        if (
-          opened.some(
-            (obj) => obj.route.route === closed[closedIdx].route.route
-          )
-        ) {
+        if (opened.some((obj) => obj.route.route === closed[closedIdx].route.route)) {
           // @ts-expect-error
           closed[closedIdx] = null;
         }
@@ -253,9 +237,7 @@ export const createHistoryRouter = (params: {
       target: openedFx,
     });
 
-    const containsCurrentRoute = <T extends RouteParams>(
-      recheckResults: RecheckResult<T>[]
-    ) => {
+    const containsCurrentRoute = <T extends RouteParams>(recheckResults: RecheckResult<T>[]) => {
       const foundRoute = recheckResults.find(
         (recheckResult) => recheckResult.route.route === routeObj.route
       );
@@ -293,17 +275,11 @@ export const createHistoryRouter = (params: {
     });
 
     sample({
-      source: [
-        routeObj.route.$params,
-        routeObj.route.$query,
-        restore(updated, null),
-      ] as const,
+      source: [routeObj.route.$params, routeObj.route.$query, restore(updated, null)] as const,
       clock: updated,
       // Skip .updated() calls if params & query are the same
       filter([params, query], next) {
-        return (
-          !paramsEqual(params, next.params) || !paramsEqual(query, next.query)
-        );
+        return !paramsEqual(params, next.params) || !paramsEqual(query, next.query);
       },
       fn: ([, , payload]) => payload!,
       target: routeObj.route.updated,
@@ -339,8 +315,7 @@ export const createHistoryRouter = (params: {
     sample({
       clock: notFoundRouteTriggered,
       source: { query: $query },
-      filter: (_, { activeRoutesCount, isOpened }) =>
-        !isOpened && activeRoutesCount === 0,
+      filter: (_, { activeRoutesCount, isOpened }) => !isOpened && activeRoutesCount === 0,
       fn: ({ query }) => ({ query, params: {} }),
       target: params.notFoundRoute.opened,
     });
@@ -348,16 +323,14 @@ export const createHistoryRouter = (params: {
     sample({
       clock: notFoundRouteTriggered,
       source: { query: $query },
-      filter: (_, { activeRoutesCount, isOpened }) =>
-        isOpened && activeRoutesCount === 0,
+      filter: (_, { activeRoutesCount, isOpened }) => isOpened && activeRoutesCount === 0,
       fn: ({ query }) => ({ query, params: {} }),
       target: params.notFoundRoute.updated,
     });
 
     sample({
       clock: notFoundRouteTriggered,
-      filter: ({ activeRoutesCount, isOpened }) =>
-        isOpened && activeRoutesCount !== 0,
+      filter: ({ activeRoutesCount, isOpened }) => isOpened && activeRoutesCount !== 0,
       target: params.notFoundRoute.closed,
     });
   }

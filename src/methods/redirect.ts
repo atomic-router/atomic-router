@@ -1,13 +1,5 @@
-import {
-  Clock,
-  createEvent,
-  createStore,
-  Event,
-  is,
-  sample,
-  Store,
-} from 'effector';
-import { EmptyObject, RouteInstance, RouteParams, RouteQuery } from '../types';
+import { Clock, createEvent, createStore, Event, is, sample, Store } from "effector";
+import { EmptyObject, RouteInstance, RouteParams, RouteQuery } from "../types";
 
 type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
   ? {
@@ -37,9 +29,7 @@ type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
         };
 
 /** Opens passed `route` upon `clock` trigger */
-export function redirect<T, Params extends RouteParams>(
-  options: RedirectParams<T, Params>
-) {
+export function redirect<T, Params extends RouteParams>(options: RedirectParams<T, Params>) {
   const clock: Event<T> = options.clock
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
@@ -52,9 +42,9 @@ export function redirect<T, Params extends RouteParams>(
     clock: clock,
     source: { params, query, replace },
     fn: ({ params, query, replace }, clock) => ({
-      params: typeof params === 'function' ? params(clock) : params,
-      query: typeof query === 'function' ? query(clock) : query,
-      replace: typeof replace === 'function' ? replace(clock) : replace,
+      params: typeof params === "function" ? params(clock) : params,
+      query: typeof query === "function" ? query(clock) : query,
+      replace: typeof replace === "function" ? replace(clock) : replace,
     }),
     target: options.route.navigate,
   });

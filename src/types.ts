@@ -1,5 +1,5 @@
-import { History } from 'history';
-import { Effect, Store, EventCallable } from 'effector';
+import { History } from "history";
+import { Effect, Store, EventCallable } from "effector";
 
 export type RouteParams = Record<string, any>;
 
@@ -10,8 +10,7 @@ export type RouteParamsAndQuery<Params extends RouteParams> = {
   query: RouteQuery;
 };
 
-export interface NavigateParams<Params extends RouteParams>
-  extends RouteParamsAndQuery<Params> {
+export interface NavigateParams<Params extends RouteParams> extends RouteParamsAndQuery<Params> {
   replace?: boolean;
 }
 
@@ -23,10 +22,7 @@ export type RouteInstance<Params extends RouteParams> = {
   updated: EventCallable<RouteParamsAndQuery<Params>>;
   closed: EventCallable<void>;
   navigate: Effect<NavigateParams<Params>, NavigateParams<Params>>;
-  open: Effect<
-    Params extends EmptyObject ? void : Params,
-    RouteParamsAndQuery<Params>
-  >;
+  open: Effect<Params extends EmptyObject ? void : Params, RouteParamsAndQuery<Params>>;
   kind: typeof Kind.ROUTE;
 };
 
@@ -45,7 +41,7 @@ export type HistoryPushParams = {
   path: string;
   params: RouteParams;
   query: RouteQuery;
-  method: 'replace' | 'push';
+  method: "replace" | "push";
 };
 
 export type HistoryBackForwardParams = History;

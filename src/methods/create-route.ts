@@ -1,11 +1,4 @@
-import {
-  attach,
-  createEffect,
-  createEvent,
-  createStore,
-  split,
-  Store,
-} from 'effector';
+import { attach, createEffect, createEvent, createStore, split, Store } from "effector";
 import {
   RouteParams,
   RouteParamsAndQuery,
@@ -14,7 +7,7 @@ import {
   NavigateParams,
   Kind,
   EmptyObject,
-} from '../types';
+} from "../types";
 
 type CreateRouteParams = {
   filter?: Store<boolean>;
@@ -23,14 +16,13 @@ type CreateRouteParams = {
 export function createRoute<Params extends RouteParams = {}>(
   params: CreateRouteParams = {}
 ): RouteInstance<Params> {
-  const navigateFx = createEffect<
-    NavigateParams<Params>,
-    NavigateParams<Params>
-  >(({ params, query, replace = false }) => ({
-    params: params || {},
-    query: query || {},
-    replace,
-  }));
+  const navigateFx = createEffect<NavigateParams<Params>, NavigateParams<Params>>(
+    ({ params, query, replace = false }) => ({
+      params: params || {},
+      query: query || {},
+      replace,
+    })
+  );
 
   const openFx = attach({
     effect: navigateFx,
@@ -50,17 +42,13 @@ export function createRoute<Params extends RouteParams = {}>(
 
   $isOpened.on(opened, () => true).on(closed, () => false);
 
-  $params
-    .on(opened, (_, { params }) => params)
-    .on(updated, (_, { params }) => params);
+  $params.on(opened, (_, { params }) => params).on(updated, (_, { params }) => params);
 
-  $query
-    .on(opened, (_, { query }) => query)
-    .on(updated, (_, { query }) => query);
+  $query.on(opened, (_, { query }) => query).on(updated, (_, { query }) => query);
 
   split({
     source: navigateFx.doneData,
-    match: $isOpened.map((isOpened) => (isOpened ? 'updated' : 'opened')),
+    match: $isOpened.map((isOpened) => (isOpened ? "updated" : "opened")),
     cases: {
       opened,
       updated,
