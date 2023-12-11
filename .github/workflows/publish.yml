@@ -69,5 +69,5 @@ jobs:
         run: npm publish --tag rc
 
       - name: Publish atomic-router@${{ steps.version.outputs.tag }} to latest
-        if: ${{ steps.next.outputs.match == '' && steps.rc.outputs.match != '' }}
+        if: ${{ steps.next.outputs.match == '' && steps.rc.outputs.match == '' }}
         run: npm publish
