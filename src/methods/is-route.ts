@@ -8,7 +8,6 @@ export const isRoute = (
     typeof route === 'object' &&
     route !== null &&
     'kind' in route &&
-    // @ts-expect-error
     route.kind === Kind.ROUTE
   );
 };
