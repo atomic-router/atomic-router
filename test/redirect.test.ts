@@ -177,7 +177,9 @@ describe('redirect', () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(
-        scope.getState($navigateDone.map((data) => data?.params.replace))
+        scope.getState(
+          $navigateDone.map((data) => data?.params.replace ?? false)
+        )
       ).toEqual(true);
     });
 
@@ -198,7 +200,9 @@ describe('redirect', () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(
-        scope.getState($navigateDone.map((data) => data?.params.replace))
+        scope.getState(
+          $navigateDone.map((data) => data?.params.replace ?? false)
+        )
       ).toEqual(true);
     });
 
@@ -219,7 +223,9 @@ describe('redirect', () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(
-        scope.getState($navigateDone.map((data) => data?.params.replace))
+        scope.getState(
+          $navigateDone.map((data) => data?.params.replace ?? false)
+        )
       ).toEqual(true);
     });
   });
