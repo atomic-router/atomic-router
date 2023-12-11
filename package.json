@@ -11,8 +11,8 @@
     ".": {
       "types": "./dist/atomic-router.d.mts",
       "import": "./dist/atomic-router.mjs",
-      "require": "./dist/atomic-router.cjs.js",
-      "node": "./dist/atomic-router.cjs.js",
+      "require": "./dist/atomic-router.js",
+      "node": "./dist/atomic-router.js",
       "default": "./dist/atomic-router.mjs"
     },
     "./package.json": "./package.json"
