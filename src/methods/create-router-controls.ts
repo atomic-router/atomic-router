@@ -1,17 +1,18 @@
-import { createEvent, createStore } from "effector";
+import { createEvent, createStore, type EventCallable, type StoreWritable } from "effector";
 
-import { RouteQuery } from "../types";
-import { paramsEqual } from "../utils/equals";
+import type { RouteQuery } from "../types";
+import { paramsEqual } from "../lib/equals";
 
-export const createRouterControls = () => {
+interface RouterControls {
+  $query: StoreWritable<RouteQuery>;
+  back: EventCallable<void>;
+  forward: EventCallable<void>;
+}
+
+export function createRouterControls(): RouterControls {
   return {
-    $query: createStore<RouteQuery>(
-      {},
-      {
-        updateFilter: (update, current) => !paramsEqual(current, update),
-      },
-    ),
+    $query: createStore({}, { updateFilter: (update, current) => !paramsEqual(current, update) }),
     back: createEvent(),
     forward: createEvent(),
   };
-};
+}

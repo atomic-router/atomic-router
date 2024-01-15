@@ -1,9 +1,25 @@
-export * from "./methods/create-route";
-export * from "./methods/new-create-history-router";
-export * from "./methods/create-router-controls";
-export * from "./utils/build-path";
-export * from "./methods/is-route";
-export * from "./methods/redirect";
-export * from "./methods/chain-route";
-export * from "./methods/query-sync";
-export * from "./types";
+export { createRoute } from "./methods/create-route";
+export { createHistoryRouter } from "./methods/create-history-router";
+export { createRouterControls } from "./methods/create-router-controls";
+export { isRoute } from "./methods/is-route";
+export { redirect } from "./methods/redirect";
+export { chainRoute } from "./methods/chain-route";
+export { querySync } from "./methods/query-sync";
+
+export * from "./lib/build-path";
+
+export type {
+  RouteParams,
+  RouteQuery,
+  NavigateParams,
+  RouteParamsAndQuery,
+  RouteInstance,
+  RouteObject,
+  UnmappedRouteObject,
+  HistoryBackForwardParams,
+  HistoryPushParams,
+  ParamsSerializer,
+  PathCreator,
+  EmptyObject,
+} from "./types";
+export { Kind } from "./types";

@@ -5,7 +5,7 @@ import { HistoryBackForwardParams, HistoryPushParams } from "../types";
 
 function assertHistory(history: History) {
   if (!history) {
-    throw new Error("[Routing] No history provided");
+    throw new Error("[Atomic-Router] No history provided");
   }
 }
 

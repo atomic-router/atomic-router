@@ -5,7 +5,7 @@ import { allSettled, createEvent, Event, fork, sample, serialize, Store } from "
 import { createMemoryHistory, History } from "history";
 import * as queryString from "query-string";
 import { describe, it, expect, vi, Mock } from "vitest";
-import { createHistoryRouter } from "../src/methods/new-create-history-router";
+import { createHistoryRouter } from "../src/methods/create-history-router";
 import { createRoute, createRouterControls } from "../src";
 
 const foo = createRoute();

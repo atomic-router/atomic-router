@@ -48,6 +48,7 @@ export function redirect<T, Params extends RouteParams>(options: RedirectParams<
     }),
     target: options.route.navigate,
   });
+
   return clock;
 }
 
