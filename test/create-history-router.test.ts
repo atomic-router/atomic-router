@@ -767,7 +767,7 @@ function listenHistoryChanges(history: History) {
       pathname: state.location.pathname,
       search: state.location.search,
       state: state.location.state,
-    })
+    }),
   );
   return fn;
 }

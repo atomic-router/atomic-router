@@ -14,14 +14,14 @@ type CreateRouteParams = {
 };
 
 export function createRoute<Params extends RouteParams = {}>(
-  params: CreateRouteParams = {}
+  params: CreateRouteParams = {},
 ): RouteInstance<Params> {
   const navigateFx = createEffect<NavigateParams<Params>, NavigateParams<Params>>(
     ({ params, query, replace = false }) => ({
       params: params || {},
       query: query || {},
       replace,
-    })
+    }),
   );
 
   const openFx = attach({

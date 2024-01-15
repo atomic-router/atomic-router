@@ -66,7 +66,7 @@ const remapRouteObjects = (objects: UnmappedRouteObject<any>[], basePath: string
   if (derivedRoutes.length) {
     for (const derivedRoute of derivedRoutes) {
       console.error(
-        `createHistoryRouter: ${derivedRoute.path} uses derived route. This won't work`
+        `createHistoryRouter: ${derivedRoute.path} uses derived route. This won't work`,
       );
     }
   }
@@ -143,7 +143,7 @@ export const createHistoryRouter = (params: {
         query,
         method: replace ? "replace" : "push",
       };
-    }
+    },
   );
 
   type RecalculateParams = {
@@ -189,7 +189,7 @@ export const createHistoryRouter = (params: {
       closed = closed.filter(Boolean);
 
       return { opened, closed };
-    }
+    },
   );
 
   $path.on(recalculateFx.done, (_, { params: { path } }) => path);
@@ -197,7 +197,7 @@ export const createHistoryRouter = (params: {
   $query.on(recalculateFx.done, (_, { params: { query } }) => query);
 
   $activeRoutes.on(recalculateFx.doneData, (_, { opened }) =>
-    opened.map((recheckResult) => recheckResult.route.route)
+    opened.map((recheckResult) => recheckResult.route.route),
   );
 
   sample({
@@ -239,7 +239,7 @@ export const createHistoryRouter = (params: {
 
     const containsCurrentRoute = <T extends RouteParams>(recheckResults: RecheckResult<T>[]) => {
       const foundRoute = recheckResults.find(
-        (recheckResult) => recheckResult.route.route === routeObj.route
+        (recheckResult) => recheckResult.route.route === routeObj.route,
       );
       if (!foundRoute) {
         return;

@@ -24,8 +24,8 @@ export function querySync<T extends Record<string, Store<any>>>(params: QuerySyn
   const cleanupStrategy = !("cleanup" in params)
     ? cleanupStrategies.default
     : typeof params.cleanup === "boolean"
-    ? cleanupStrategies[params.cleanup ? "all" : "none"]
-    : { ...cleanupStrategies.default, ...params.cleanup! };
+      ? cleanupStrategies[params.cleanup ? "all" : "none"]
+      : { ...cleanupStrategies.default, ...params.cleanup! };
 
   const queryUpdatedFromHistory = sample({
     clock: params.controls.$query,

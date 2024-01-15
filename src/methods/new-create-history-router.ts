@@ -68,7 +68,7 @@ export function createHistoryRouter({
     {
       name: "historyRouter.$query",
       updateFilter: (newQuery, oldQuery) => !paramsEqual(newQuery, oldQuery),
-    }
+    },
   );
   const $activeRoutes = createStore<RouteInstance<any>[]>([], {
     serialize: "ignore",
@@ -265,7 +265,7 @@ export function createHistoryRouter({
       // Remove all that are marked to be opened
       mismatchingRoutes.forEach((mismatchedRoute, mismatchedIndex) => {
         const mismatchedRouteExistsInMatchedList = matchingRoutes.some(
-          (matchedRoute) => matchedRoute.routeObj.route === mismatchedRoute.routeObj.route
+          (matchedRoute) => matchedRoute.routeObj.route === mismatchedRoute.routeObj.route,
         );
         if (mismatchedRouteExistsInMatchedList) {
           mismatchingRoutes.splice(mismatchedIndex, 1);
@@ -301,7 +301,7 @@ export function createHistoryRouter({
   });
 
   $activeRoutes.on(recalculated, (_, { matching }) =>
-    matching.map((recheckResult) => recheckResult.routeObj.route)
+    matching.map((recheckResult) => recheckResult.routeObj.route),
   );
 
   /// Handling 404
@@ -424,7 +424,7 @@ type RecalculationResult<Params extends RouteParams> = {
 const containsCurrentRoute =
   (routeObj: RouteObject<any>) => (recheckResults: RecalculationResult<any>[]) => {
     const recheck = recheckResults.find(
-      (recheckResult) => recheckResult.routeObj.route === routeObj.route
+      (recheckResult) => recheckResult.routeObj.route === routeObj.route,
     );
     if (!recheck) {
       return;

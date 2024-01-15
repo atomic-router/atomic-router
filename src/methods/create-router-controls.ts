@@ -9,7 +9,7 @@ export const createRouterControls = () => {
       {},
       {
         updateFilter: (update, current) => !paramsEqual(current, update),
-      }
+      },
     ),
     back: createEvent(),
     forward: createEvent(),

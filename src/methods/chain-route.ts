@@ -22,7 +22,7 @@ import { isRoute } from "./is-route";
 
 type ChainRouteParamsInternalAttach<
   Params extends RouteParams,
-  FX extends Effect<any, any, any>
+  FX extends Effect<any, any, any>,
 > = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
@@ -69,7 +69,7 @@ type chainRouteParams<Params extends RouteParams, FX extends Effect<any, any, an
   | ChainRouteParamsInternalAttach<Params, FX>;
 
 function normalizeChainRouteParams<Params extends RouteParams, FX extends Effect<any, any, any>>(
-  params: chainRouteParams<Params, FX>
+  params: chainRouteParams<Params, FX>,
 ): ChainRouteParamsNormalized<Params> {
   const resultParams: ChainRouteParamsNormalized<Params> = {} as ChainRouteParamsNormalized<Params>;
   if (isRoute(params)) {
@@ -112,19 +112,19 @@ function normalizeChainRouteParams<Params extends RouteParams, FX extends Effect
 }
 
 function chainRoute<Params extends RouteParams>(
-  instance: RouteInstance<Params>
+  instance: RouteInstance<Params>,
 ): RouteInstance<Params>;
 
 function chainRoute<Params extends RouteParams>(
-  config: ChainRouteParamsWithEffect<Params>
+  config: ChainRouteParamsWithEffect<Params>,
 ): RouteInstance<Params>;
 
 function chainRoute<Params extends RouteParams>(
-  config: ChainRouteParamsAdvanced<Params>
+  config: ChainRouteParamsAdvanced<Params>,
 ): RouteInstance<Params>;
 
 function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>>(
-  config: ChainRouteParamsInternalAttach<Params, FX>
+  config: ChainRouteParamsInternalAttach<Params, FX>,
 ): RouteInstance<Params>;
 
 /**
@@ -138,17 +138,17 @@ function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>
  * @returns {RouteInstance<any>} `chainedRoute`
  */
 function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>>(
-  params: chainRouteParams<Params, FX>
+  params: chainRouteParams<Params, FX>,
 ) {
   const { route, chainedRoute, beforeOpen, openOn, cancelOn } = normalizeChainRouteParams(params);
-  const $params = createStore({} as StoreValue<typeof route["$params"]>);
-  const $query = createStore({} as StoreValue<typeof route["$query"]>);
+  const $params = createStore({} as StoreValue<(typeof route)["$params"]>);
+  const $query = createStore({} as StoreValue<(typeof route)["$query"]>);
   const $hasSameParams = combine(
     combine([route.$params, route.$query]),
     combine([$params, $query]),
     (current, stored) => {
       return current[0] === stored[0] && current[1] === stored[1];
-    }
+    },
   );
   const routeOpened = sample({
     clock: [route.opened, route.updated],

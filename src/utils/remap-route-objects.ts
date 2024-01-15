@@ -27,7 +27,7 @@ export function remapRouteObjects(objects: UnmappedRouteObject<any>[], basePath:
   if (derivedRoutes.length) {
     for (const derivedRoute of derivedRoutes) {
       console.error(
-        `createHistoryRouter: ${derivedRoute.path} uses derived route. This won't work`
+        `createHistoryRouter: ${derivedRoute.path} uses derived route. This won't work`,
       );
     }
   }

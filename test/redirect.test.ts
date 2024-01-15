@@ -36,7 +36,7 @@ describe("redirect", () => {
         action: state.action,
         pathname: state.location.pathname,
         search: state.location.search,
-      })
+      }),
     );
     const foo = createRoute();
     const bar = createRoute();
@@ -177,7 +177,7 @@ describe("redirect", () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(scope.getState($navigateDone.map((data) => data?.params.replace ?? false))).toEqual(
-        true
+        true,
       );
     });
 
@@ -198,7 +198,7 @@ describe("redirect", () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(scope.getState($navigateDone.map((data) => data?.params.replace ?? false))).toEqual(
-        true
+        true,
       );
     });
 
@@ -219,7 +219,7 @@ describe("redirect", () => {
 
       expect(scope.getState($navigateDone)).toBeTruthy();
       expect(scope.getState($navigateDone.map((data) => data?.params.replace ?? false))).toEqual(
-        true
+        true,
       );
     });
   });
