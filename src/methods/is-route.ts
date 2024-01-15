@@ -6,7 +6,6 @@ export const isRoute = (route: RouteInstance<any> | unknown): route is RouteInst
     typeof route === "object" &&
     route !== null &&
     "kind" in route &&
-    // @ts-expect-error
     route.kind === Kind.ROUTE
   );
 };

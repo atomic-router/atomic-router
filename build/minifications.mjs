@@ -59,7 +59,7 @@ export const minifyConfig = ({ beautify, inline = true }) => ({
     unsafe_proto: true,
   },
   mangle: {
-    reserved: ['effector', 'effectorVue', 'effectorReact', 'it', 'test'],
+    reserved: ["effector", "effectorVue", "effectorReact", "it", "test"],
     eval: true,
     keep_classnames: false,
     keep_fnames: false,

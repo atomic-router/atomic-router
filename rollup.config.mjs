@@ -2,10 +2,10 @@ import babel from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import dts from "rollup-plugin-dts";
 import resolve from "@rollup/plugin-node-resolve";
-import { terser } from "rollup-plugin-terser";
+import terser from "@rollup/plugin-terser";
 
-import pkg from "./package.json";
-import { minifyConfig } from "./build/minifications";
+import pkg from "./package.json" with { type: "json" };
+import { minifyConfig } from "./build/minifications.mjs";
 
 const extensions = [".ts", ".tsx", ".js"];
 
