@@ -15,7 +15,8 @@
       "node": "./dist/atomic-router.js",
       "default": "./dist/atomic-router.mjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./babel-preset": "./babel-preset.js"
   },
   "files": [
     "dist",
