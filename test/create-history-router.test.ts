@@ -231,10 +231,10 @@ describe("Initialization", () => {
       hydrate: false,
     });
     const history = createMemoryHistory({
-      initialEntries: ["/foo"],
+      initialEntries: ["/posts/42?kek=pek"],
     });
 
-    const opened = watch(foo.opened);
+    const opened = watch(withParams.opened);
     const ssrScope = fork();
 
     expect(opened).toBeCalledTimes(0);
@@ -251,16 +251,22 @@ describe("Initialization", () => {
     const clientScope = fork({ values: data });
 
     expect(opened).toBeCalledTimes(1);
-    expect(clientScope.getState(foo.$isOpened)).toBe(true);
+    expect(clientScope.getState(withParams.$isOpened)).toBe(true);
+    expect(clientScope.getState(withParams.$params)).toEqual({ postId: "42" });
+    expect(clientScope.getState(withParams.$query)).toEqual({ kek: "pek" });
 
     await allSettled(hydratedRouter.setHistory, {
       scope: clientScope,
       params: createMemoryHistory({
-        initialEntries: ["/foo"],
+        initialEntries: ["/posts/42?kek=pek"],
       }),
     });
 
     expect(opened).toBeCalledTimes(2);
+    expect(clientScope.getState(withParams.$params)).toEqual({ postId: "42" });
+    expect(clientScope.getState(withParams.$query)).toEqual({ kek: "pek" });
+    expect(ssrScope.getState(withParams.$params)).toEqual(clientScope.getState(withParams.$params));
+    expect(ssrScope.getState(withParams.$query)).toEqual(clientScope.getState(withParams.$query));
   });
 });
 
