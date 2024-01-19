@@ -160,7 +160,7 @@ describe("Initialization", () => {
       ],
       controls,
       /**
-       * Explicitly set hydrate to true
+       * Explicitly set hydrate to `false`
        */
       hydrate: false,
     });
@@ -193,7 +193,7 @@ describe("Initialization", () => {
       ],
       controls,
       /**
-       * Explicitly set hydrate to true
+       * Explicitly set hydrate to `true`
        */
       hydrate: true,
     });
@@ -226,7 +226,7 @@ describe("Initialization", () => {
       ],
       controls,
       /**
-       * Explicitly set hydrate to true
+       * Explicitly set hydrate to `false`
        */
       hydrate: false,
     });
