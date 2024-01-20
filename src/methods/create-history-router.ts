@@ -1,5 +1,5 @@
 import { History } from "history";
-import { attach, createEvent, createStore, sample, scopeBind } from "effector";
+import { attach, combine, createEvent, createStore, sample, scopeBind } from "effector";
 import { createRouterControls } from "./create-router-controls";
 import {
   HistoryPushParams,
@@ -32,6 +32,13 @@ export function createHistoryRouter({
   hydrate?: boolean;
   controls?: ReturnType<typeof createRouterControls>;
 }) {
+  const $hydrateMode = createStore(hydrate ?? false, {
+    /**
+     * It is explicitly set in the config and not as a Store,
+     * so value from config should be used at all times - we don't want to serialize this value
+     */
+    serialize: "ignore",
+  });
   const remappedRoutes = remapRouteObjects(routes, base);
 
   const setHistory = createEvent<History>();
@@ -158,6 +165,21 @@ export function createHistoryRouter({
     const currentRouteMatched = routesMatched.filterMap(containsCurrentRoute(routeObj));
     const currentRouteMismatched = routesMismatched.filterMap(containsCurrentRoute(routeObj));
     const routeStateChangeRequested = {
+      /**
+       * Special case:
+       * - Scope is initied from server data, route.$isOpened -> true
+       * - but `hydrate` flag is set to false
+       *
+       * So route.opened() should be called after router.setHistory anyway to respect that
+       */
+      initialized: sample({
+        clock: subscribeHistoryFx.done,
+        filter: combine(
+          routeObj.route.$isOpened,
+          $hydrateMode,
+          (isOpened, hydrateMode) => isOpened && !hydrateMode,
+        ),
+      }),
       opened: sample({
         clock: currentRouteMatched,
         filter: not(routeObj.route.$isOpened),
@@ -171,6 +193,18 @@ export function createHistoryRouter({
         filter: routeObj.route.$isOpened,
       }),
     };
+
+    /**
+     * Trigger .opened() for special case with scope being initialized from server data
+     */
+    sample({
+      clock: routeStateChangeRequested.initialized,
+      source: {
+        params: routeObj.route.$params,
+        query: routeObj.route.$query,
+      },
+      target: routeObj.route.opened,
+    });
 
     // Trigger .updated() for the routes marked as "matched" but already opened
     sample({

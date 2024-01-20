@@ -129,6 +129,145 @@ describe("Initialization", () => {
       query: {},
     });
   });
+
+  it("Triggers route.opened on .setHistory() call (hydrate is not set)", async () => {
+    const history = createMemoryHistory({
+      initialEntries: ["/foo"],
+    });
+
+    const opened = watch(foo.opened);
+    const scope = fork();
+
+    expect(opened).toBeCalledTimes(0);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+
+    expect(opened).toBeCalledTimes(1);
+  });
+
+  it("Triggers route.opened on .setHistory() call (hydrate: false)", async () => {
+    const hydratedRouter = createHistoryRouter({
+      routes: [
+        { route: foo, path: "/foo" },
+        { route: bar, path: "/bar" },
+        { route: first, path: "/first" },
+        { route: firstClone, path: "/first" },
+        { route: withParams, path: "/posts/:postId" },
+        { route: hashed, path: "/test/#/swap/:token" },
+      ],
+      controls,
+      /**
+       * Explicitly set hydrate to `false`
+       */
+      hydrate: false,
+    });
+    const history = createMemoryHistory({
+      initialEntries: ["/foo"],
+    });
+
+    const opened = watch(foo.opened);
+    const scope = fork();
+
+    expect(opened).toBeCalledTimes(0);
+
+    await allSettled(hydratedRouter.setHistory, {
+      scope,
+      params: history,
+    });
+
+    expect(opened).toBeCalledTimes(1);
+  });
+
+  it("Does not trigger route.opened on .setHistory() call (hydrate: true)", async () => {
+    const hydratedRouter = createHistoryRouter({
+      routes: [
+        { route: foo, path: "/foo" },
+        { route: bar, path: "/bar" },
+        { route: first, path: "/first" },
+        { route: firstClone, path: "/first" },
+        { route: withParams, path: "/posts/:postId" },
+        { route: hashed, path: "/test/#/swap/:token" },
+      ],
+      controls,
+      /**
+       * Explicitly set hydrate to `true`
+       */
+      hydrate: true,
+    });
+    const history = createMemoryHistory({
+      initialEntries: ["/foo"],
+    });
+
+    const opened = watch(foo.opened);
+    const scope = fork();
+
+    expect(opened).toBeCalledTimes(0);
+
+    await allSettled(hydratedRouter.setHistory, {
+      scope,
+      params: history,
+    });
+
+    expect(opened).toBeCalledTimes(0);
+  });
+
+  it("Triggers route.opened on .setHistory() call (hydrate: false + scope is initilized from serialized data)", async () => {
+    const hydratedRouter = createHistoryRouter({
+      routes: [
+        { route: foo, path: "/foo" },
+        { route: bar, path: "/bar" },
+        { route: first, path: "/first" },
+        { route: firstClone, path: "/first" },
+        { route: withParams, path: "/posts/:postId" },
+        { route: hashed, path: "/test/#/swap/:token" },
+      ],
+      controls,
+      /**
+       * Explicitly set hydrate to `false`
+       */
+      hydrate: false,
+    });
+    const history = createMemoryHistory({
+      initialEntries: ["/posts/42?kek=pek"],
+    });
+
+    const opened = watch(withParams.opened);
+    const ssrScope = fork();
+
+    expect(opened).toBeCalledTimes(0);
+
+    await allSettled(hydratedRouter.setHistory, {
+      scope: ssrScope,
+      params: history,
+    });
+
+    expect(opened).toBeCalledTimes(1);
+
+    const data = serialize(ssrScope);
+
+    const clientScope = fork({ values: data });
+
+    expect(opened).toBeCalledTimes(1);
+    expect(clientScope.getState(withParams.$isOpened)).toBe(true);
+    expect(clientScope.getState(withParams.$params)).toEqual({ postId: "42" });
+    expect(clientScope.getState(withParams.$query)).toEqual({ kek: "pek" });
+
+    await allSettled(hydratedRouter.setHistory, {
+      scope: clientScope,
+      params: createMemoryHistory({
+        initialEntries: ["/posts/42?kek=pek"],
+      }),
+    });
+
+    expect(opened).toBeCalledTimes(2);
+    expect(clientScope.getState(withParams.$params)).toEqual({ postId: "42" });
+    expect(clientScope.getState(withParams.$query)).toEqual({ kek: "pek" });
+    expect(ssrScope.getState(withParams.$params)).toEqual(clientScope.getState(withParams.$params));
+    expect(ssrScope.getState(withParams.$query)).toEqual(clientScope.getState(withParams.$query));
+  });
 });
 
 describe("Lifecycle", () => {
