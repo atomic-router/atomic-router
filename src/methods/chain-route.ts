@@ -49,7 +49,7 @@ type ChainRouteParamsInternalAttach<
 type ChainRouteParamsWithEffect<Params extends RouteParams> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
-  beforeOpen: Effect<RouteParamsAndQuery<Params>, any, any>;
+  beforeOpen: Effect<RouteParamsAndQuery<Params>, any, any> | Effect<void, any, any>;
 };
 
 type ChainRouteParamsAdvanced<Params extends RouteParams> = {
