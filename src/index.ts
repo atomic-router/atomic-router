@@ -15,6 +15,7 @@ export type {
   RouteParamsAndQuery,
   RouteInstance,
   RouteObject,
+  RouteObjectInternal,
   UnmappedRouteObject,
   HistoryBackForwardParams,
   HistoryPushParams,
