@@ -121,7 +121,7 @@ function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>
     clock: openOn as Unit<any>,
     source: { params: $params, query: $query },
     filter: $hasSameParams,
-    target: chainedRoute.navigate,
+    target: chainedRoute.opened,
   });
 
   // 4. Cancel loading if page closed or `cancelOn` is called

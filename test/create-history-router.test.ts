@@ -1,7 +1,16 @@
 /**
  * @jest-environment jsdom
  */
-import { allSettled, createEvent, Event, fork, sample, serialize, Store } from "effector";
+import {
+  allSettled,
+  createEvent,
+  createWatch,
+  Event,
+  fork,
+  sample,
+  serialize,
+  Store,
+} from "effector";
 import { createMemoryHistory, History } from "history";
 import * as queryString from "query-string";
 import { describe, it, expect, vi, Mock } from "vitest";
@@ -271,6 +280,50 @@ describe("Initialization", () => {
 });
 
 describe("Lifecycle", () => {
+  it(`"route.open()" trigger navigation`, async () => {
+    const history = createMemoryHistory();
+    history.push("/foo");
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    const push = vi.fn();
+
+    createWatch({ scope, fn: push, unit: router.push });
+
+    await allSettled(bar.open, { scope });
+
+    expect(push).toHaveBeenCalled();
+  });
+
+  it(`"route.navigate()" trigger navigation`, async () => {
+    const history = createMemoryHistory();
+    history.push("/foo");
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+    const push = vi.fn();
+
+    createWatch({ scope, fn: push, unit: router.push });
+
+    await allSettled(bar.navigate, { scope, params: { params: { a: 1 }, query: { b: 2 } } });
+
+    expect(push).toHaveBeenCalledWith({
+      method: "push",
+      params: {
+        a: 1,
+      },
+      path: "/bar?b=2",
+      query: {
+        b: 2,
+      },
+    });
+    expect(scope.getState(bar.$isOpened)).toBeTruthy();
+  });
+
   it("Triggers .opened() with params and query", async () => {
     const opened = watch(withParams.opened);
     const history = createMemoryHistory();
@@ -430,6 +483,40 @@ describe("History", () => {
         },
       ]
     `);
+  });
+
+  it(`Not update routes when blocked`, async () => {
+    const history = createMemoryHistory();
+    history.push("/foo");
+
+    const scope = fork();
+    await allSettled(router.setHistory, {
+      scope,
+      params: history,
+    });
+
+    const unblock = history.block(() => {});
+
+    const barOpened = vi.fn();
+    createWatch({
+      scope,
+      unit: bar.opened,
+      fn: barOpened,
+    });
+
+    await allSettled(bar.open, { scope });
+
+    expect(scope.getState(bar.$isOpened)).toBeFalsy();
+    expect(scope.getState(foo.$isOpened)).toBeTruthy();
+    expect(barOpened).not.toHaveBeenCalled();
+
+    unblock();
+
+    await allSettled(bar.open, { scope });
+
+    expect(scope.getState(bar.$isOpened)).toBeTruthy();
+    expect(scope.getState(foo.$isOpened)).toBeFalsy();
+    expect(barOpened).toHaveBeenCalled();
   });
 });
 

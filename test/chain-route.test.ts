@@ -1,4 +1,4 @@
-import { allSettled, createEffect, createEvent, fork } from "effector";
+import { allSettled, createEffect, createEvent, createWatch, fork } from "effector";
 import { describe, it, expect, vi } from "vitest";
 import { createRoute, chainRoute } from "../src";
 
@@ -13,7 +13,7 @@ describe("chainRoute", () => {
     const route = createRoute();
     const chainedRoute = chainRoute(route);
     const scope = fork();
-    await allSettled(route.open, { scope });
+    await allSettled(route.opened, { scope, params: { params: {}, query: {} } });
     expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
   });
 
@@ -26,7 +26,7 @@ describe("chainRoute", () => {
       beforeOpen: fx,
     });
     const scope = fork();
-    const promise = allSettled(route.open, { scope });
+    const promise = allSettled(route.opened, { scope, params: { params: {}, query: {} } });
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
     await promise;
     expect(cb).toBeCalledTimes(1);
@@ -51,7 +51,7 @@ describe("chainRoute", () => {
       },
     });
     const scope = fork();
-    const promise = allSettled(route.navigate, {
+    const promise = allSettled(route.opened, {
       scope,
       params: {
         params: { x: "param" },
@@ -79,7 +79,7 @@ describe("chainRoute", () => {
       cancelOn,
     });
     const scope = fork();
-    await allSettled(route.navigate, {
+    await allSettled(route.opened, {
       scope,
       params: {
         replace: false,
@@ -114,7 +114,7 @@ describe("chainRoute", () => {
       cancelOn,
     });
     const scope = fork();
-    await allSettled(route.navigate, {
+    await allSettled(route.opened, {
       scope,
       params: {
         params: { x: "param" },
@@ -125,7 +125,6 @@ describe("chainRoute", () => {
     expect(beforeOpenCb).toBeCalledWith({
       params: { x: "param" },
       query: { foo: "query" },
-      replace: false,
     });
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
     await allSettled(cancelOn, { scope });

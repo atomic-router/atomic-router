@@ -1,4 +1,4 @@
-import { allSettled, createEvent, createStore, fork, restore, Event } from "effector";
+import { allSettled, createEvent, createStore, fork, restore, Event, createWatch } from "effector";
 import { describe, it, expect, vi, type Mock } from "vitest";
 import { createHistoryRouter, createRoute, redirect } from "../src";
 import { createMemoryHistory } from "history";
@@ -8,7 +8,7 @@ function argumentHistory(fn: Mock) {
 }
 
 describe("redirect", () => {
-  it("Opens `route` on `clock` trigger", async () => {
+  it("Call `route.naviagte()` on `clock` trigger", async () => {
     const clock = createEvent();
     const route = createRoute();
 
@@ -19,11 +19,16 @@ describe("redirect", () => {
 
     const scope = fork();
 
+    const navigate = vi.fn();
+    createWatch({
+      scope,
+      fn: navigate,
+      unit: route.navigate,
+    });
+
     await allSettled(clock, { scope });
 
-    expect(scope.getState(route.$isOpened)).toBeTruthy();
-    expect(scope.getState(route.$params)).toEqual({});
-    expect(scope.getState(route.$query)).toEqual({});
+    expect(navigate).toHaveBeenCalled();
   });
 
   it("makes only one record in the history", async () => {
@@ -111,11 +116,21 @@ describe("redirect", () => {
     });
 
     const scope = fork();
+
+    const navigateResult = vi.fn();
+    createWatch({
+      scope,
+      fn: navigateResult,
+      unit: route.navigate.doneData,
+    });
+
     await allSettled(clock, { scope });
 
-    expect(scope.getState(route.$isOpened)).toBeTruthy();
-    expect(scope.getState(route.$params)).toEqual({ foo: "bar" });
-    expect(scope.getState(route.$query)).toEqual({ baz: "test" });
+    expect(navigateResult).toHaveBeenCalledWith({
+      params: { foo: "bar" },
+      query: { baz: "test" },
+      replace: false,
+    });
   });
 
   it("Store-like `params` & `query`", async () => {
@@ -130,11 +145,21 @@ describe("redirect", () => {
     });
 
     const scope = fork();
+
+    const navigateResult = vi.fn();
+    createWatch({
+      scope,
+      fn: navigateResult,
+      unit: route.navigate.doneData,
+    });
+
     await allSettled(clock, { scope });
 
-    expect(scope.getState(route.$isOpened)).toBeTruthy();
-    expect(scope.getState(route.$params)).toEqual({ foo: "bar" });
-    expect(scope.getState(route.$query)).toEqual({ baz: "test" });
+    expect(navigateResult).toHaveBeenCalledWith({
+      params: { foo: "bar" },
+      query: { baz: "test" },
+      replace: false,
+    });
   });
 
   it("Function-like `params` & `query`", async () => {
@@ -149,12 +174,20 @@ describe("redirect", () => {
     });
 
     const scope = fork();
+
+    const navigateResult = vi.fn();
+    createWatch({
+      scope,
+      fn: navigateResult,
+      unit: route.navigate.doneData,
+    });
+
     await allSettled(clock, { scope, params: "bar" });
 
-    expect(scope.getState(route.$isOpened)).toBeTruthy();
-    expect(scope.getState(route.$params)).toEqual({ foo: "bar" });
-    expect(scope.getState(route.$query)).toEqual({
-      baz: "bar-test",
+    expect(navigateResult).toHaveBeenCalledWith({
+      params: { foo: "bar" },
+      query: { baz: `bar-test` },
+      replace: false,
     });
   });
 
