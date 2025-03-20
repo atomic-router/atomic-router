@@ -13,6 +13,7 @@ import {
   EffectParams,
   attach,
   UnitTargetable,
+  split,
 } from "effector";
 
 import { createRoute } from "./create-route";
@@ -117,11 +118,14 @@ function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>
   $query.on(routeTriggered, (_prev, { query }) => query);
 
   // 2. Listen to `openOn` if route is still opened on the same position
-  sample({
-    clock: openOn as Unit<any>,
-    source: { params: $params, query: $query },
-    filter: $hasSameParams,
-    target: chainedRoute.opened,
+  split({
+    source: sample({
+      clock: openOn as Unit<any>,
+      source: { params: $params, query: $query },
+      filter: $hasSameParams,
+    }),
+    match: chainedRoute.$isOpened.map((opened) => (opened ? "updated" : "opened")),
+    cases: { opened: chainedRoute.opened, updated: chainedRoute.updated },
   });
 
   // 4. Cancel loading if page closed or `cancelOn` is called

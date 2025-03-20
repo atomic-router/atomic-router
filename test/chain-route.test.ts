@@ -1,4 +1,12 @@
-import { allSettled, createEffect, createEvent, createWatch, fork } from "effector";
+import {
+  allSettled,
+  attach,
+  createEffect,
+  createEvent,
+  createStore,
+  createWatch,
+  fork,
+} from "effector";
 import { describe, it, expect, vi } from "vitest";
 import { createRoute, chainRoute, createHistoryRouter } from "../src";
 import { createMemoryHistory } from "history";
@@ -11,17 +19,47 @@ const sleep = (t: number) => {
 
 describe("chainRoute", () => {
   it("Creates a chained route", async () => {
-    const route = createRoute();
-    const history = createMemoryHistory();
-    const router = createHistoryRouter({
-      routes: [{ path: "/", route }],
-    });
-    const chainedRoute = chainRoute(route);
     const scope = fork();
-    history.push("/test");
-    await allSettled(router.setHistory, { params: history, scope });
-    await allSettled(route.open, { scope });
-    expect(scope.getState(chainedRoute.$isOpened)).toBeTruthy();
+    const history = createMemoryHistory();
+    history.push("/");
+    const routes = [
+      { path: "/root(.*)", route: createRoute() },
+      { path: "/root/test", route: createRoute() },
+      { path: "/root/test2", route: createRoute() },
+      { path: "/another", route: createRoute() },
+    ];
+    const chainedRoute = chainRoute({ route: routes[0].route, beforeOpen: createEffect(() => {}) });
+    const router = createHistoryRouter({ routes });
+
+    const opened = vi.fn();
+    const updated = vi.fn();
+    const closed = vi.fn();
+
+    createWatch({ scope, fn: opened, unit: chainedRoute.opened });
+    createWatch({ scope, fn: updated, unit: chainedRoute.updated });
+    createWatch({ scope, fn: closed, unit: chainedRoute.closed });
+
+    await allSettled(router.setHistory, { scope, params: history });
+
+    await allSettled(routes[1].route.open, { scope });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(0);
+    expect(closed).toHaveBeenCalledTimes(0);
+
+    await allSettled(routes[2].route.open, { scope });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(1);
+    expect(closed).toHaveBeenCalledTimes(0);
+
+    await allSettled(routes[1].route.open, { scope });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(2);
+    expect(closed).toHaveBeenCalledTimes(0);
+
+    await allSettled(routes[3].route.open, { scope });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(2);
+    expect(closed).toHaveBeenCalledTimes(1);
   });
 
   it("Effect in beforeOpen", async () => {
