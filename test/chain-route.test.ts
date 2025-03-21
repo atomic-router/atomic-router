@@ -1,12 +1,4 @@
-import {
-  allSettled,
-  attach,
-  createEffect,
-  createEvent,
-  createStore,
-  createWatch,
-  fork,
-} from "effector";
+import { allSettled, createEffect, createEvent, createWatch, fork } from "effector";
 import { describe, it, expect, vi } from "vitest";
 import { createRoute, chainRoute, createHistoryRouter } from "../src";
 import { createMemoryHistory } from "history";
@@ -199,5 +191,121 @@ describe("chainRoute", () => {
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
     await allSettled(openOn, { scope });
     expect(scope.getState(chainedRoute.$isOpened)).toBeFalsy();
+  });
+
+  it("Chained route .push must trigger navigation", async () => {
+    const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/");
+
+    const route = createRoute<{ param: string }>();
+
+    const router = createHistoryRouter({
+      routes: [{ path: "/route/:param", route }],
+    });
+
+    const beforeOpenFx = createEffect(vi.fn(() => sleep(100)));
+
+    const chainedRoute = chainRoute({ route, beforeOpen: beforeOpenFx });
+
+    const opened = vi.fn();
+    const updated = vi.fn();
+    const chainedOpened = vi.fn();
+    const chainedUpdated = vi.fn();
+
+    createWatch({ scope, fn: opened, unit: route.opened });
+    createWatch({ scope, fn: updated, unit: route.updated });
+    createWatch({ scope, fn: chainedOpened, unit: chainedRoute.opened });
+    createWatch({ scope, fn: chainedUpdated, unit: chainedRoute.updated });
+
+    await allSettled(router.setHistory, { scope, params: history });
+
+    await allSettled(chainedRoute.open, { scope, params: { param: "foo" } });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(0);
+    expect(chainedOpened).toHaveBeenCalledTimes(1);
+    expect(chainedUpdated).toHaveBeenCalledTimes(0);
+
+    await allSettled(chainedRoute.open, { scope, params: { param: "bar" } });
+    expect(updated).toHaveBeenCalledTimes(1);
+    expect(chainedUpdated).toHaveBeenCalledTimes(1);
+  });
+
+  it("Chained route .navigate must trigger navigation", async () => {
+    const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/");
+
+    const route = createRoute<{ param: string }>();
+
+    const router = createHistoryRouter({
+      routes: [{ path: "/route/:param", route }],
+    });
+
+    const beforeOpenFx = createEffect(vi.fn(() => sleep(100)));
+
+    const chainedRoute = chainRoute({ route, beforeOpen: beforeOpenFx });
+
+    const opened = vi.fn();
+    const updated = vi.fn();
+    const chainedOpened = vi.fn();
+    const chainedUpdated = vi.fn();
+
+    createWatch({ scope, fn: opened, unit: route.opened });
+    createWatch({ scope, fn: updated, unit: route.updated });
+    createWatch({ scope, fn: chainedOpened, unit: chainedRoute.opened });
+    createWatch({ scope, fn: chainedUpdated, unit: chainedRoute.updated });
+
+    await allSettled(router.setHistory, { scope, params: history });
+
+    await allSettled(chainedRoute.navigate, {
+      scope,
+      params: { params: { param: "foo" }, query: {} },
+    });
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenCalledTimes(0);
+    expect(chainedOpened).toHaveBeenCalledTimes(1);
+    expect(chainedUpdated).toHaveBeenCalledTimes(0);
+
+    await allSettled(chainedRoute.navigate, {
+      scope,
+      params: { params: { param: "bar" }, query: {} },
+    });
+    expect(updated).toHaveBeenCalledTimes(1);
+    expect(chainedUpdated).toHaveBeenCalledTimes(1);
+  });
+
+  it("Multiple times chained route must triggering navigation", async () => {
+    const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/");
+
+    const route = createRoute();
+
+    const router = createHistoryRouter({
+      routes: [{ path: "/route", route }],
+    });
+
+    const chainedRoute = chainRoute({ route, beforeOpen: createEffect(vi.fn()) });
+    const doubleChainedRoute = chainRoute({
+      route: chainedRoute,
+      beforeOpen: createEffect(vi.fn()),
+    });
+
+    const opened = vi.fn();
+    const chainedOpened = vi.fn();
+    const doubleChainedOpened = vi.fn();
+
+    createWatch({ scope, fn: opened, unit: route.opened });
+    createWatch({ scope, fn: chainedOpened, unit: chainedRoute.opened });
+    createWatch({ scope, fn: doubleChainedOpened, unit: doubleChainedRoute.opened });
+
+    await allSettled(router.setHistory, { scope, params: history });
+
+    await allSettled(doubleChainedRoute.open, { scope });
+
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(chainedOpened).toHaveBeenCalledTimes(1);
+    expect(doubleChainedOpened).toHaveBeenCalledTimes(1);
   });
 });
