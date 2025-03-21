@@ -8,7 +8,7 @@ function argumentHistory(fn: Mock) {
 }
 
 describe("redirect", () => {
-  it("Call `route.naviagte()` on `clock` trigger", async () => {
+  it("Call `route.navigate()` on `clock` trigger", async () => {
     const clock = createEvent();
     const route = createRoute();
 
