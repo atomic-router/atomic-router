@@ -125,7 +125,21 @@ function chainRoute<Params extends RouteParams, FX extends Effect<any, any, any>
       filter: $hasSameParams,
     }),
     match: chainedRoute.$isOpened.map((opened) => (opened ? "updated" : "opened")),
-    cases: { opened: chainedRoute.opened, updated: chainedRoute.updated },
+    cases: {
+      opened: chainedRoute.opened,
+      updated: chainedRoute.updated,
+    },
+  });
+
+  // 3. Handle navigate and open
+  sample({
+    clock: chainedRoute.navigate,
+    target: route.navigate,
+  });
+
+  sample({
+    clock: chainedRoute.open,
+    target: route.open,
   });
 
   // 4. Cancel loading if page closed or `cancelOn` is called
@@ -164,7 +178,7 @@ function normalizeChainRouteParams<Params extends RouteParams, FX extends Effect
       route: params,
       chainedRoute: createRoute<Params>(),
       beforeOpen: createEvent(),
-      openOn: merge([params.opened, params.closed]),
+      openOn: params.opened,
       cancelOn: merge([]),
     });
     return resultParams;
