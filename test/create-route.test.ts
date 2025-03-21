@@ -1,8 +1,10 @@
 import { allSettled, fork } from "effector";
 import { describe, it, expect, vi } from "vitest";
-import { createRoute } from "../src";
+import { createHistoryRouter, createRoute } from "../src";
+import { createMemoryHistory } from "history";
 
 const route = createRoute<{ postId: string }>();
+const router = createHistoryRouter({ routes: [{ path: "/test/:postId", route }] });
 
 describe("Routes creation", () => {
   it("Initialized with default values", () => {
@@ -16,6 +18,9 @@ describe("Routes creation", () => {
 describe(".open() method", () => {
   it("Marks route as opened", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.open, {
       scope,
       params: { postId: "foo" },
@@ -25,6 +30,9 @@ describe(".open() method", () => {
 
   it("Stores route params in $params", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.open, {
       scope,
       params: { postId: "foo" },
@@ -34,6 +42,11 @@ describe(".open() method", () => {
 
   it("Works without params passed", async () => {
     const scope = fork();
+    const route = createRoute();
+    const router = createHistoryRouter({ routes: [{ path: "/", route }] });
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.open, {
       scope,
       params: undefined,
@@ -42,24 +55,14 @@ describe(".open() method", () => {
     expect(scope.getState(route.$params)).toEqual({});
     expect(scope.getState(route.$query)).toEqual({});
   });
-
-  it("Resets $params to {} if no params passed", async () => {
-    const scope = fork();
-    await allSettled(route.open, {
-      scope,
-      params: { postId: "foo" },
-    });
-    await allSettled(route.open, {
-      scope,
-      params: undefined,
-    });
-    expect(scope.getState(route.$params)).toEqual({});
-  });
 });
 
 describe(".navigate() method", () => {
   it("Marks route as opened", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: {} },
@@ -69,6 +72,9 @@ describe(".navigate() method", () => {
 
   it("Stores route params in $params", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: {} },
@@ -78,6 +84,9 @@ describe(".navigate() method", () => {
 
   it("Stores route query in $query", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: { test: "bar" } },
@@ -87,6 +96,9 @@ describe(".navigate() method", () => {
 
   it("Resets $query on .open() trigger", async () => {
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: {} },
@@ -104,13 +116,15 @@ describe("Lifecycle: .opened()", () => {
     const cb = vi.fn();
     route.opened.watch(cb);
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: { test: "blah" } },
     });
     expect(cb).toBeCalledTimes(1);
     expect(cb).toBeCalledWith({
-      replace: false,
       params: { postId: "foo" },
       query: { test: "blah" },
     });
@@ -120,6 +134,9 @@ describe("Lifecycle: .opened()", () => {
     const cb = vi.fn();
     route.opened.watch(cb);
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.open, {
       scope,
       params: { postId: "foo" },
@@ -137,6 +154,9 @@ describe("Lifecycle: .updated()", () => {
     const cb = vi.fn();
     route.updated.watch(cb);
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.open, {
       scope,
       params: { postId: "foo" },
@@ -148,6 +168,9 @@ describe("Lifecycle: .updated()", () => {
     const cb = vi.fn();
     route.updated.watch(cb);
     const scope = fork();
+    const history = createMemoryHistory();
+    history.push("/test");
+    await allSettled(router.setHistory, { scope, params: history });
     await allSettled(route.navigate, {
       scope,
       params: { params: { postId: "foo" }, query: { test: "blah" } },
@@ -159,7 +182,6 @@ describe("Lifecycle: .updated()", () => {
     });
     expect(cb).toBeCalledTimes(1);
     expect(cb).toBeCalledWith({
-      replace: false,
       params: { postId: "bar" },
       query: { test: "baz" },
     });

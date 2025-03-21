@@ -1,4 +1,4 @@
-import { attach, createEffect, createEvent, createStore, split, Store } from "effector";
+import { attach, createEffect, createEvent, createStore, Store } from "effector";
 import {
   RouteParams,
   RouteParamsAndQuery,
@@ -45,15 +45,6 @@ export function createRoute<Params extends RouteParams = {}>(
   $params.on(opened, (_, { params }) => params).on(updated, (_, { params }) => params);
 
   $query.on(opened, (_, { query }) => query).on(updated, (_, { query }) => query);
-
-  split({
-    source: navigateFx.doneData,
-    match: $isOpened.map((isOpened) => (isOpened ? "updated" : "opened")),
-    cases: {
-      opened,
-      updated,
-    },
-  });
 
   // if (params.filter) {
   //   const filter = params.filter;
