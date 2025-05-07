@@ -1,4 +1,4 @@
-import { allSettled, createEffect, createEvent, createWatch, fork } from "effector";
+import { allSettled, createEffect, createEvent, createWatch, fork, sample } from "effector";
 import { describe, it, expect, vi } from "vitest";
 import { createRoute, chainRoute, createHistoryRouter } from "../src";
 import { createMemoryHistory } from "history";
@@ -52,6 +52,37 @@ describe("chainRoute", () => {
     expect(opened).toHaveBeenCalledTimes(1);
     expect(updated).toHaveBeenCalledTimes(2);
     expect(closed).toHaveBeenCalledTimes(1);
+  });
+
+  it("Event<void> in beforeOpen with openOn, cancelOn", async () => {
+    const route = createRoute();
+
+    const sessionCheckStarted = createEvent();
+    const sessionEstablished = createEvent();
+    const sessionCheckFailed = createEvent();
+
+    const authorizedRoute = chainRoute({
+      route: route,
+      beforeOpen: sessionCheckStarted,
+      openOn: sessionEstablished,
+      cancelOn: sessionCheckFailed,
+    });
+
+    sample({
+      clock: sessionCheckStarted,
+      target: sessionEstablished,
+    });
+
+    const history = createMemoryHistory();
+    const router = createHistoryRouter({
+      routes: [{ path: "/", route }],
+    });
+    const scope = fork();
+    history.push("/");
+    await allSettled(router.setHistory, { scope, params: history });
+
+    expect(scope.getState(route.$isOpened)).toBeTruthy();
+    expect(scope.getState(authorizedRoute.$isOpened)).toBeTruthy();
   });
 
   it("Effect in beforeOpen", async () => {
