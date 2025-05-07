@@ -1,10 +1,10 @@
-import { Clock, createEvent, createStore, Event, is, sample, Store } from "effector";
-import { EmptyObject, RouteInstance, RouteParams, RouteQuery } from "../types";
+import { type Clock, createEvent, createStore, type Event, is, sample, type Store } from "effector";
+import type { EmptyObject, RouteInstance, RouteParams, RouteQuery } from "../types";
 
 type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject
   ? {
       clock?: Clock<T>;
-      route: RouteInstance<Params>;
+      route: RouteInstance<{}>;
       query?: ((clock: T) => RouteQuery) | Store<RouteQuery> | RouteQuery;
       replace?: ((clock: T) => boolean) | Store<boolean> | boolean;
     }
@@ -34,7 +34,7 @@ export function redirect<T, Params extends RouteParams>(options: RedirectParams<
     ? sample({ clock: options.clock as Event<T> })
     : createEvent<T>();
 
-  const params = toStore(options.params || {});
+  const params = toStore("params" in options ? options.params || {} : {});
   const query = toStore(options.query || {});
   const replace = toStore(options.replace || false);
 
@@ -42,14 +42,24 @@ export function redirect<T, Params extends RouteParams>(options: RedirectParams<
     clock: clock,
     source: { params, query, replace },
     fn: ({ params, query, replace }, clock) => ({
-      params: typeof params === "function" ? params(clock) : params,
-      query: typeof query === "function" ? query(clock) : query,
-      replace: typeof replace === "function" ? replace(clock) : replace,
+      params: fromClock(clock, params),
+      query: fromClock(clock, query),
+      replace: fromClock(clock, replace),
     }),
     target: options.route.navigate,
   });
 
   return clock;
+}
+
+function fromClock<Clock, Input extends {} | boolean>(
+  clock: Clock,
+  fn: ((clock: Clock) => Input) | Input,
+): Input {
+  if (typeof fn === "function") {
+    return fn(clock);
+  }
+  return fn;
 }
 
 function toStore<T>(payload: T | Store<T>): Store<T> {
