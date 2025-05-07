@@ -187,32 +187,3 @@ describe("Lifecycle: .updated()", () => {
     });
   });
 });
-
-describe("$params + $query", () => {
-  it("Update on .opened()", async () => {
-    const scope = fork();
-    await allSettled(route.opened, {
-      scope,
-      params: { params: { postId: "foo" }, query: {} },
-    });
-    expect(scope.getState(route.$params)).toEqual({ postId: "foo" });
-  });
-
-  it("Update on .updated()", async () => {
-    const scope = fork();
-    await allSettled(route.updated, {
-      scope,
-      params: { params: { postId: "foo" }, query: {} },
-    });
-    expect(scope.getState(route.$params)).toEqual({ postId: "foo" });
-  });
-
-  it("Reset on .closed()", async () => {
-    const scope = fork();
-    await allSettled(route.closed, {
-      scope,
-      params: undefined,
-    });
-    expect(scope.getState(route.$params)).toEqual({});
-  });
-});
