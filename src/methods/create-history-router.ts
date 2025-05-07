@@ -1,7 +1,13 @@
-import { History } from "history";
 import { attach, combine, createEvent, createStore, sample, scopeBind } from "effector";
-import { createRouterControls } from "./create-router-controls";
-import {
+import type { Effect, Event, EventCallable, Store } from "effector";
+import { History } from "history";
+
+import { buildPath, matchPath } from "../lib/build-path";
+import { paramsEqual } from "../lib/equals";
+import { historyBackFx, historyForwardFx, historyPushFx } from "../lib/history-effects";
+import { not } from "../lib/logic";
+import { remapRouteObjects } from "../lib/remap-route-objects";
+import type {
   HistoryPushParams,
   ParamsSerializer,
   RouteInstance,
@@ -10,12 +16,29 @@ import {
   RouteQuery,
   UnmappedRouteObject,
 } from "../types";
-import { remapRouteObjects } from "../lib/remap-route-objects";
-import { paramsEqual } from "../lib/equals";
-import { buildPath, matchPath } from "../lib/build-path";
+import { createRouterControls } from "./create-router-controls";
 import { isRouteInternal } from "./is-route";
-import { historyBackFx, historyForwardFx, historyPushFx } from "../lib/history-effects";
-import { not } from "../lib/logic";
+
+export interface HistoryRouter {
+  $path: Store<string>;
+  $activeRoutes: Store<RouteInstance<any>[]>;
+  $history: Store<History>;
+  $query: Store<RouteQuery>;
+
+  setHistory: EventCallable<History>;
+  back: EventCallable<void>;
+  forward: EventCallable<void>;
+  push: Effect<Omit<HistoryPushParams, "history">, HistoryPushParams>;
+
+  routes: RouteObject<any>[];
+
+  initialized: Event<{
+    activeRoutes: RouteInstance<any>[];
+    path: string;
+    query: RouteQuery;
+  }>;
+  routeNotFound: Event<void>;
+}
 
 export function createHistoryRouter({
   base,
@@ -31,7 +54,7 @@ export function createHistoryRouter({
   serialize?: ParamsSerializer;
   hydrate?: boolean;
   controls?: ReturnType<typeof createRouterControls>;
-}) {
+}): HistoryRouter {
   const $hydrateMode = createStore(hydrate ?? false, {
     /**
      * It is explicitly set in the config and not as a Store,
@@ -446,7 +469,7 @@ export function createHistoryRouter({
     routes: remappedRoutes,
     initialized,
     routeNotFound,
-  };
+  } satisfies HistoryRouter;
 }
 
 type RecalculationResult<Params extends RouteParams> = {
