@@ -34,7 +34,7 @@ export function querySync<T extends Record<string, Store<any>>>(params: QuerySyn
 
   sample({
     clock,
-    source: combine([$source, params.controls.$query]),
+    source: [$source, params.controls.$query] as const,
     filter: $isOpened,
     fn: ([source, currentQuery]) => {
       let nextQuery: RouteQuery = {};
