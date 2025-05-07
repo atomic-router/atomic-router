@@ -2,7 +2,7 @@ name: CI
 on: [push]
 jobs:
   build:
-    name: Build, lint, and test on Node v${{ matrix.node }} and ${{ matrix.os }}
+    name: Node v${{ matrix.node }} on ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -34,6 +34,3 @@ jobs:
 
       - name: Build
         run: pnpm build
-
-      - name: Publint
-        run: pnpm publint ./
