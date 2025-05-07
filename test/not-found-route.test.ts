@@ -1,6 +1,7 @@
+import { type Event, type Store, allSettled, fork } from "effector";
 import { createMemoryHistory } from "history";
-import { allSettled, fork, Store, Event } from "effector";
-import { describe, it, vi, expect, Mock } from "vitest";
+import { type Mock, describe, expect, it, vi } from "vitest";
+
 import { createHistoryRouter, createRoute } from "../src";
 
 const firstRoute = createRoute();

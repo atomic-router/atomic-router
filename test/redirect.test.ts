@@ -1,7 +1,8 @@
-import { allSettled, createEvent, createStore, fork, restore, createWatch } from "effector";
-import { describe, it, expect, vi, type Mock } from "vitest";
-import { createHistoryRouter, createRoute, redirect } from "../src";
+import { allSettled, createEvent, createStore, createWatch, fork, restore } from "effector";
 import { createMemoryHistory } from "history";
+import { type Mock, describe, expect, it, vi } from "vitest";
+
+import { createHistoryRouter, createRoute, redirect } from "../src";
 
 function argumentHistory(fn: Mock) {
   return fn.mock.calls.map(([value]) => value);

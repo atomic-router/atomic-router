@@ -1,8 +1,8 @@
-import { createMemoryHistory } from "history";
-import { describe, it, expect } from "vitest";
 import { allSettled, createEvent, createStore, fork, restore } from "effector";
+import { createMemoryHistory } from "history";
+import { describe, expect, it } from "vitest";
 
-import { createRoute, createHistoryRouter, querySync, createRouterControls } from "../src";
+import { createHistoryRouter, createRoute, createRouterControls, querySync } from "../src";
 
 const createRouter = () => {
   const route = createRoute();

@@ -1,4 +1,4 @@
-import { UnmappedRouteObject, RouteObject, RouteObjectInternal } from "../types";
+import type { RouteObject, RouteObjectInternal, UnmappedRouteObject } from "../types";
 
 export function remapRouteObjects(objects: UnmappedRouteObject<any>[], basePath: string = "") {
   let next: RouteObject<any>[] = [];

@@ -1,30 +1,22 @@
-import {
-  is,
-  merge,
-  sample,
-  combine,
-  createStore,
-  Unit,
+import { attach, combine, createEvent, createStore, is, merge, sample, split } from "effector";
+import type {
   Clock,
   Effect,
-  StoreValue,
-  createEvent,
-  NoInfer,
   EffectParams,
-  attach,
+  NoInfer,
+  StoreValue,
+  Unit,
   UnitTargetable,
-  split,
 } from "effector";
 
-import { createRoute } from "./create-route";
-import {
+import type {
   RouteInstance,
   RouteInstanceInternal,
   RouteParams,
   RouteParamsAndQuery,
   RouteQuery,
 } from "../types";
-
+import { createRoute } from "./create-route";
 import { isRouteInternal } from "./is-route";
 
 type ChainRouteParamsInternalAttach<

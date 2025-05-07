@@ -1,6 +1,6 @@
 import { attach, combine, createEvent, createStore, sample, scopeBind } from "effector";
 import type { Effect, Event, EventCallable, Store } from "effector";
-import { History } from "history";
+import type { History } from "history";
 
 import { buildPath, matchPath } from "../lib/build-path";
 import { paramsEqual } from "../lib/equals";

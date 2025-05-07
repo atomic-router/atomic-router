@@ -1,4 +1,4 @@
-import { Kind, RouteInstance, RouteInstanceInternal } from "../types";
+import { Kind, type RouteInstance, type RouteInstanceInternal } from "../types";
 
 /** Detects whether passed value is a `RouteInstance<any>` or not */
 export function isRoute(route: RouteInstance<any> | unknown): route is RouteInstance<any> {

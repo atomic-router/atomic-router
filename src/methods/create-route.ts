@@ -1,13 +1,14 @@
-import { attach, createEffect, createEvent, createStore, Store } from "effector";
-import {
+import { type Store, attach, createEffect, createEvent, createStore } from "effector";
+
+import type {
+  EmptyObject,
+  NavigateParams,
+  RouteInstance,
   RouteParams,
   RouteParamsAndQuery,
   RouteQuery,
-  RouteInstance,
-  NavigateParams,
-  Kind,
-  EmptyObject,
 } from "../types";
+import { Kind } from "../types";
 
 type CreateRouteParams = {
   filter?: Store<boolean>;

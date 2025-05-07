@@ -1,5 +1,5 @@
-import { History } from "history";
-import { Effect, Store, Event, EventCallable } from "effector";
+import type { Effect, Event, EventCallable, Store } from "effector";
+import type { History } from "history";
 
 export type RouteParams = Record<string, any>;
 

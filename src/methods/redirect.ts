@@ -1,4 +1,5 @@
-import { type Clock, createEvent, createStore, type Event, is, sample, type Store } from "effector";
+import { type Clock, type Event, type Store, createEvent, createStore, is, sample } from "effector";
+
 import type { EmptyObject, RouteInstance, RouteParams, RouteQuery } from "../types";
 
 type RedirectParams<T, Params extends RouteParams> = Params extends EmptyObject

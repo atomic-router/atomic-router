@@ -1,6 +1,6 @@
-import { match, compile } from "path-to-regexp";
+import { compile, match } from "path-to-regexp";
 
-import type { RouteParams, PathCreator, RouteQuery, ParamsSerializer } from "../types";
+import type { ParamsSerializer, PathCreator, RouteParams, RouteQuery } from "../types";
 
 // NOTE: If path is URL - provide it as is
 // Otherwise - extract pathname and hash

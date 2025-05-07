@@ -1,7 +1,8 @@
 import { allSettled, createEffect, createEvent, createWatch, fork, sample } from "effector";
-import { describe, it, expect, vi } from "vitest";
-import { createRoute, chainRoute, createHistoryRouter } from "../src";
 import { createMemoryHistory } from "history";
+import { describe, expect, it, vi } from "vitest";
+
+import { chainRoute, createHistoryRouter, createRoute } from "../src";
 
 const sleep = (t: number) => {
   return new Promise((r) => {

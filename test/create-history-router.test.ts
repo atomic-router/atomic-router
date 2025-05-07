@@ -1,21 +1,23 @@
 /**
  * @jest-environment jsdom
  */
+import * as queryString from "query-string";
 import {
+  type Event,
+  type Store,
+  type StoreWritable,
   allSettled,
   createEvent,
   createWatch,
-  Event,
   fork,
   sample,
   serialize,
-  Store,
 } from "effector";
-import { createMemoryHistory, History } from "history";
-import * as queryString from "query-string";
-import { describe, it, expect, vi, Mock } from "vitest";
-import { createHistoryRouter } from "../src/methods/create-history-router";
+import { type History, createMemoryHistory } from "history";
+import { type Mock, describe, expect, it, vi } from "vitest";
+
 import { createRoute, createRouterControls } from "../src";
+import { createHistoryRouter } from "../src/methods/create-history-router";
 
 const foo = createRoute();
 const bar = createRoute();
@@ -538,7 +540,7 @@ describe("Query", () => {
     const history = createMemoryHistory();
     history.push("/foo?param=test");
     const changed = createEvent<Record<string, string>>();
-    router.$query.on(changed, (_, next) => next);
+    (router.$query as StoreWritable<{}>).on(changed, (_, next) => next);
     const scope = fork();
     await allSettled(router.setHistory, {
       scope,
@@ -561,7 +563,7 @@ describe("Query", () => {
     const fn = listenHistoryChanges(history);
     history.push("/foo?param=test");
     const changed = createEvent<Record<string, string>>();
-    router.$query.on(changed, (_, next) => next);
+    (router.$query as StoreWritable<{}>).on(changed, (_, next) => next);
     const scope = fork();
 
     await allSettled(router.setHistory, {
@@ -659,7 +661,7 @@ describe("Custom ser/de for query string", () => {
     const fn = listenHistoryChanges(history);
     history.push("/");
     const changed = createEvent<Record<string, (string | number)[]>>();
-    sample({ clock: changed, target: router.$query });
+    sample({ clock: changed, target: router.$query as StoreWritable<{}> });
     const scope = fork();
     await allSettled(router.setHistory, {
       scope,

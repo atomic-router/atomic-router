@@ -1,6 +1,6 @@
-import { Clock, combine, createStore, sample, Store, Unit } from "effector";
+import { type Clock, type Store, type Unit, combine, createStore, sample } from "effector";
 
-import { RouteInstance, RouteQuery } from "../types";
+import { type RouteInstance, type RouteQuery } from "../types";
 import { createRouterControls } from "./create-router-controls";
 
 type QueryCleanupStrategy = {

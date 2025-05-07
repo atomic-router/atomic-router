@@ -1,7 +1,7 @@
-import { History } from "history";
 import { createEffect } from "effector";
+import type { History } from "history";
 
-import { HistoryBackForwardParams, HistoryPushParams } from "../types";
+import type { HistoryBackForwardParams, HistoryPushParams } from "../types";
 
 function assertHistory(history: History) {
   if (!history) {

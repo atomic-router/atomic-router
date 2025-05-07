@@ -1,7 +1,7 @@
-import { createEvent, createStore, type EventCallable, type StoreWritable } from "effector";
+import { type EventCallable, type StoreWritable, createEvent, createStore } from "effector";
 
-import type { RouteQuery } from "../types";
 import { paramsEqual } from "../lib/equals";
+import type { RouteQuery } from "../types";
 
 interface RouterControls {
   $query: StoreWritable<RouteQuery>;

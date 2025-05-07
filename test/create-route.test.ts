@@ -1,7 +1,8 @@
 import { allSettled, fork } from "effector";
-import { describe, it, expect, vi } from "vitest";
-import { createHistoryRouter, createRoute } from "../src";
 import { createMemoryHistory } from "history";
+import { describe, expect, it, vi } from "vitest";
+
+import { createHistoryRouter, createRoute } from "../src";
 
 const route = createRoute<{ postId: string }>();
 const router = createHistoryRouter({ routes: [{ path: "/test/:postId", route }] });
