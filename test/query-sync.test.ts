@@ -78,7 +78,7 @@ describe("querySync", () => {
     const qChanged = createEvent<string>();
     const $q = createStore("defaultState");
 
-    $q.on(qChanged, (prev, next) => next);
+    $q.on(qChanged, (_, next) => next);
 
     querySync({
       source: { defaultState: $q },

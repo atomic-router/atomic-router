@@ -911,7 +911,7 @@ describe("Router with params.base", () => {
 describe("Hydrate", () => {
   it("Should creates without errors", async () => {
     expect(() => {
-      const router = createHistoryRouter({
+      createHistoryRouter({
         routes: [
           { route: foo, path: "/foo" },
           { route: bar, path: "/bar" },

@@ -1,4 +1,4 @@
-import { allSettled, createEvent, createStore, fork, restore, Event, createWatch } from "effector";
+import { allSettled, createEvent, createStore, fork, restore, createWatch } from "effector";
 import { describe, it, expect, vi, type Mock } from "vitest";
 import { createHistoryRouter, createRoute, redirect } from "../src";
 import { createMemoryHistory } from "history";
