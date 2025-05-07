@@ -9,10 +9,10 @@
   "types": "dist/atomic-router.d.ts",
   "exports": {
     ".": {
+      "node": "./dist/atomic-router.js",
       "types": "./dist/atomic-router.d.mts",
       "import": "./dist/atomic-router.mjs",
       "require": "./dist/atomic-router.js",
-      "node": "./dist/atomic-router.js",
       "default": "./dist/atomic-router.mjs"
     },
     "./package.json": "./package.json",
@@ -61,21 +61,20 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@size-limit/preset-small-lib": "^11.0.1",
-    "@types/history": "^4.7.11",
-    "@vitest/coverage-v8": "^1.2.0",
-    "@vitest/ui": "^1.2.0",
+    "@vitest/coverage-v8": "^3.1.3",
+    "@vitest/ui": "^3.1.3",
     "effector": "^23.1.0",
     "history": "^5.3.0",
-    "jsdom": "^20.0.3",
+    "jsdom": "^26.1.0",
     "prettier": "^3.2.2",
-    "publint": "^0.2.7",
+    "publint": "^0.3.12",
     "query-string": "^7.1.3",
     "rollup": "^4.9.5",
     "rollup-plugin-dts": "^6.1.0",
     "size-limit": "^11.0.1",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
-    "vitest": "^1.2.0"
+    "vitest": "^3.1.3"
   },
   "dependencies": {
     "path-to-regexp": "^6.2.0"
