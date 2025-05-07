@@ -33,7 +33,7 @@
     "Zero Bias <ribkatt@gmail.com>"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=18"
   },
   "scripts": {
     "test": "tsc --noEmit && vitest run && publint ./",
