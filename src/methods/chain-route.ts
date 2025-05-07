@@ -56,7 +56,7 @@ type ChainRouteParamsWithEffect<Params extends RouteParams> = {
 type ChainRouteParamsAdvanced<Params extends RouteParams> = {
   route: RouteInstance<Params>;
   chainedRoute?: RouteInstance<Params>;
-  beforeOpen: Clock<RouteParamsAndQuery<Params>>;
+  beforeOpen: Clock<void | RouteParamsAndQuery<Params>>;
   openOn: Clock<any>;
   cancelOn?: Clock<any>;
 };
