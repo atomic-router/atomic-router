@@ -3,5 +3,11 @@
   "endOfLine": "lf",
   "printWidth": 100,
   "tabWidth": 2,
-  "useTabs": false
+  "useTabs": false,
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderParserPlugins": ["typescript"],
+  "importOrderSortSpecifiers": true,
+  "importOrderSeparation": true,
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^[./]"]
 }
