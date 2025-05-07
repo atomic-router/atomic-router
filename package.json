@@ -10,9 +10,14 @@
   "exports": {
     ".": {
       "node": "./dist/atomic-router.js",
-      "types": "./dist/atomic-router.d.mts",
-      "import": "./dist/atomic-router.mjs",
-      "require": "./dist/atomic-router.js",
+      "import": {
+        "types": "./dist/atomic-router.d.mts",
+        "default": "./dist/atomic-router.mjs"
+      },
+      "require": {
+        "types": "./dist/atomic-router.d.ts",
+        "default": "./dist/atomic-router.js"
+      },
       "default": "./dist/atomic-router.mjs"
     },
     "./package.json": "./package.json",
@@ -31,7 +36,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "test": "tsc --noEmit && vitest run",
+    "test": "tsc --noEmit && vitest run && publint ./",
     "test:only": "vitest run",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
@@ -42,7 +47,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atomic-router/atomic-router"
+    "url": "git+https://github.com/atomic-router/atomic-router.git"
   },
   "peerDependencies": {
     "effector": "^22.8.8 || ^23",
