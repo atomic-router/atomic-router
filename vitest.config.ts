@@ -1,9 +1,9 @@
-import { defineConfig } from 'vitest/config';
-import babel from '@rollup/plugin-babel';
+import { defineConfig } from "vitest/config";
+import babel from "@rollup/plugin-babel";
 
-const extensions = ['.ts', '.tsx', '.js'];
+const extensions = [".ts", ".tsx", ".js"];
 const babelPlugin = babel({
-  babelHelpers: 'bundled',
+  babelHelpers: "bundled",
   sourceMaps: true,
   extensions,
   exclude: /node_modules.*/,
